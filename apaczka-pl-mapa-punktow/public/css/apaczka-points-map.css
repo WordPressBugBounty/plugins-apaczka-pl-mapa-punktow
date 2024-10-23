@@ -40,6 +40,35 @@
     background: #fff;
 }
 
+#amp-delivery-point-desc {
+    display: none;
+    border: 2px solid #29bb15;
+    border-radius: 5px;
+    padding: 10px;
+    background: #fff;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+
+.button.alt.geowidget_show_map.checkout-block {
+    border: 0 !important;
+    font-size: 19px !important;
+    box-shadow: 0 15px 30px -18px rgba(0, 0, 0, 90%) !important;
+    color: #fff;
+    display: block;
+    margin: auto;
+    text-align: center;
+    margin-bottom: 20px;
+    background-color: #29bb15;
+    border-radius: 3px;
+    line-height: 1em;
+    padding: 7px 10px 12px 10px;
+    /* max-width: 160px; */
+    width: 200px;
+    max-width: 100%;
+}
+
 @media (max-width: 950px) {
     .apaczkaMapMobileFilterButton {
         height: 40px !important;

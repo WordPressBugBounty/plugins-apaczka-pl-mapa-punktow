@@ -200,7 +200,7 @@ class Delivery_Point_Map {
 		$delivery_point                        = array();
 		$delivery_point['apm_access_point_id'] = sanitize_text_field( wp_unslash( $_POST['apm_access_point_id'] ) );
 
-		! empty( $_POST['apm_name'] ) ? $delivery_point['apm_supplier']                                       =
+		! empty( $_POST['apm_supplier'] ) ? $delivery_point['apm_supplier']                                       =
 			sanitize_text_field( wp_unslash( $_POST['apm_supplier'] ) ) : null;
 		! empty( $_POST['apm_name'] ) ? $delivery_point['apm_name']                                       =
 			sanitize_text_field( wp_unslash( $_POST['apm_name'] ) ) : null;
@@ -237,7 +237,7 @@ class Delivery_Point_Map {
 	public function delivery_point_as_shipping_address( $raw_address, $object ) {
 		$apaczka_delivery_point = get_post_meta( $object->get_id(), 'apaczka_delivery_point', true );
 
-		if ( ! empty( $apaczka_delivery_point ) && isset( $apaczka_delivery_point['apm_supplier'] ) ) {
+		if ( ! empty( $apaczka_delivery_point ) && is_array( $apaczka_delivery_point ) ) {
 			$raw_address['first_name'] = $apaczka_delivery_point['apm_name'];
 			$raw_address['last_name']  = '';
 			$raw_address['company']    = __( 'Delivery Point', 'apaczka-pl-mapa-punktow' ) . ': ' . $apaczka_delivery_point['apm_foreign_access_point_id'] . ' (' . $apaczka_delivery_point['apm_supplier'] . ')';
