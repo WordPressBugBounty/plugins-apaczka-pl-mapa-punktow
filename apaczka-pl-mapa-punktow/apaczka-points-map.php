@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Apaczka.pl Mapa Punktów
  * Description: Wtyczka pozwoli Ci w prosty sposób skonfigurować i wyświetlić mapę punktów dla twoich metod dostawy tak aby twój Klient mógł wybrać punkt, z którego chce odebrać przesyłkę.
- * Version:     1.3.6
+ * Version:     1.3.7
  * Text Domain: apaczka-pl-mapa-punktow
  * Author:      Inspire Labs
  * Author URI:  https://inspirelabs.pl/
@@ -62,7 +62,7 @@ class Points_Map_Plugin {
 		add_action( 'woocommerce_integrations_init', array( $this, 'include_wc_integration_class' ) );
 		add_filter( 'woocommerce_integrations', array( $this, 'add_integration_filter' ) );
 		add_action( 'init', array( $this, 'include_class' ) );
-		add_action( 'init', array( $this, 'include_translations' ) );
+		add_action( 'after_setup_theme', array( $this, 'include_translations' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'plugin_action_links' ) );
 
 		// integration with Woocommerce blocks start.

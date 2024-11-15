@@ -3,8 +3,8 @@ Contributors: inspirelabs
 Donate link: https://www. inspirelabs.pl/
 Tags: apaczka, woocommerce
 Requires at least: 4.0
-Tested up to: 6.6
-Stable tag: 1.3.6
+Tested up to: 6.7
+Stable tag: 1.3.7
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -47,6 +47,8 @@ Jeżeli nie masz jeszcze konta w Apaczka, zapoznaj się z możliwościami i skon
 
 == Changelog ==
 
+= 1.3.7 - 2024.11.15 =
+* Fix: translations
 
 = 1.3.6 - 2024.10.23 =
 * Feat: foreign services points on the map
