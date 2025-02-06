@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Apaczka.pl Mapa Punktów
  * Description: Wtyczka pozwoli Ci w prosty sposób skonfigurować i wyświetlić mapę punktów dla twoich metod dostawy tak aby twój Klient mógł wybrać punkt, z którego chce odebrać przesyłkę.
- * Version:     1.3.7
+ * Version:     1.3.9
  * Text Domain: apaczka-pl-mapa-punktow
  * Author:      Inspire Labs
  * Author URI:  https://inspirelabs.pl/
@@ -70,7 +70,9 @@ class Points_Map_Plugin {
 			'woocommerce_blocks_checkout_block_registration',
 			function ( $integration_registry ) {
 				require_once APACZKA_POINTS_MAP_DIR . 'includes/class-woo-blocks-integration.php';
-				$integration_registry->register( new ApaczkaMP_Woo_Blocks_Integration() );
+				//if( ! function_exists( 'apaczka' ) ) {
+                    $integration_registry->register(new ApaczkaMP_Woo_Blocks_Integration());
+                //}
 			}
 		);
 		add_action( 'woocommerce_store_api_checkout_update_order_from_request', array( $this, 'save_shipping_point_in_order_meta' ), 10, 2 );
@@ -88,15 +90,15 @@ class Points_Map_Plugin {
 
 		$plugin_data = get_plugin_data( __FILE__ );
 
-		if ( is_checkout() ) {
+		if ( is_checkout() || has_block( 'woocommerce/checkout' ) ) {
 			wp_enqueue_style( 'apaczka-points-map-style', APACZKA_POINTS_MAP_DIR_URL . 'public/css/apaczka-points-map.css', '', $plugin_data['Version'] );
-			wp_enqueue_script( 'apaczka-client-map-js', 'https://mapa.apaczka.pl/client/apaczka.map.js', '', $plugin_data['Version'], false );
-			wp_enqueue_script( 'apaczka-points-map-js', APACZKA_POINTS_MAP_DIR_URL . 'public/js/apaczka-points-map.js', array( 'apaczka-client-map-js', 'jquery', 'wc-checkout' ), $plugin_data['Version'], false );
+			wp_enqueue_script( 'apaczka-client-map-js', APACZKA_POINTS_MAP_DIR_URL . 'public/js/apaczka-client-map.js', '', $plugin_data['Version'], false );
+			wp_enqueue_script( 'apaczka-points-map-handler', APACZKA_POINTS_MAP_DIR_URL . 'public/js/apaczka-points-map.js', array( 'apaczka-client-map-js', 'jquery', 'wc-checkout' ), $plugin_data['Version'], false );
 
 			$app_id = isset( WC()->integrations->integrations['woocommerce-maps-apaczka']->settings['app_id'] ) ? WC()->integrations->integrations['woocommerce-maps-apaczka']->settings['app_id'] : null;
 
 			wp_localize_script(
-				'apaczka-points-map-js',
+				'apaczka-points-map-handler',
 				'apaczka_points_map',
 				array(
 					'translation' => array(
@@ -196,7 +198,7 @@ class Points_Map_Plugin {
 	 */
 	public function enqueue_frontend_blocks_scripts() {
 
-		if ( is_checkout() ) {
+		if ( is_checkout() || has_block( 'woocommerce/checkout' ) ) {
 
 			if ( has_block( 'woocommerce/checkout' ) ) {
 				$map_config = $this->get_map_config();

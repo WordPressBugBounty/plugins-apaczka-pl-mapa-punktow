@@ -242,6 +242,22 @@ jQuery(document).ready(function() {
 
     // console.log("wcSettings");
     // console.log(wcSettings );
+	
+	
+	jQuery('.wc-block-components-checkout-place-order-button__text').on(
+        'click',
+        function () {            
+            let reactjs_input       = document.getElementById( 'apaczka-point' );
+            let reactjs_input_lalue = false;
+            if (typeof reactjs_input != 'undefined' && reactjs_input !== null) {
+                reactjs_input_lalue = reactjs_input.value;
+                if ( ! reactjs_input_lalue ) {
+                    apaczka_pl_open_modal();
+                }
+            }
+        }
+    );
+	
 
     apaczkaMap = new ApaczkaMap({
         app_id: 'apaczka-woo-checkout',

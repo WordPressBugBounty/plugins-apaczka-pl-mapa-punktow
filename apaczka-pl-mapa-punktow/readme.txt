@@ -4,7 +4,7 @@ Donate link: https://www. inspirelabs.pl/
 Tags: apaczka, woocommerce
 Requires at least: 4.0
 Tested up to: 6.7
-Stable tag: 1.3.7
+Stable tag: 1.3.8
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -46,6 +46,12 @@ Jeżeli nie masz jeszcze konta w Apaczka, zapoznaj się z możliwościami i skon
 [https://www.apaczka.pl/import-woocommerce-instrukcja/](https://www.apaczka.pl/import-woocommerce-instrukcja/)
 
 == Changelog ==
+
+= 1.3.9 - 2025.02.06 =
+* Fix: map button for Checkout blocks
+
+= 1.3.8 - 2025.02.06 =
+* Fix: show point data in address details
 
 = 1.3.7 - 2024.11.15 =
 * Fix: translations

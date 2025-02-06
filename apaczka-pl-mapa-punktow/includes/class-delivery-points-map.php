@@ -235,9 +235,31 @@ class Delivery_Point_Map {
 	 * @return mixed
 	 */
 	public function delivery_point_as_shipping_address( $raw_address, $object ) {
+		
 		$apaczka_delivery_point = get_post_meta( $object->get_id(), 'apaczka_delivery_point', true );
 
-		if ( ! empty( $apaczka_delivery_point ) && is_array( $apaczka_delivery_point ) ) {
+        $need_to_show_point_in_address = false;
+
+        $order_id = $object->get_id();
+        $instance_id = '';
+        $name = '';
+		
+        foreach ( $object->get_items( 'shipping' ) as $item_id => $item ) {
+            $instance_id = $item->get_instance_id();
+            $name = $item->get_method_id();
+        }		
+
+        $shipping_method_settings_name = 'woocommerce_' . $name . '_' . $instance_id . '_settings';
+        $shipping_method_settings      = get_option( $shipping_method_settings_name );
+				
+
+        if ( $shipping_method_settings && isset( $shipping_method_settings['display_apaczka_map'] ) && 'yes' === $shipping_method_settings['display_apaczka_map'] ) {
+            $need_to_show_point_in_address = true;
+		}
+
+        
+        if ( $need_to_show_point_in_address && ! empty( $apaczka_delivery_point ) && is_array( $apaczka_delivery_point ) ) {
+						
 			$raw_address['first_name'] = $apaczka_delivery_point['apm_name'];
 			$raw_address['last_name']  = '';
 			$raw_address['company']    = __( 'Delivery Point', 'apaczka-pl-mapa-punktow' ) . ': ' . $apaczka_delivery_point['apm_foreign_access_point_id'] . ' (' . $apaczka_delivery_point['apm_supplier'] . ')';
