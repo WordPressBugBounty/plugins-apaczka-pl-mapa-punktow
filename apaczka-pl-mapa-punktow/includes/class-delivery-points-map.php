@@ -262,13 +262,13 @@ class Delivery_Point_Map {
 						
 			$raw_address['first_name'] = $apaczka_delivery_point['apm_name'];
 			$raw_address['last_name']  = '';
-			$raw_address['company']    = __( 'Delivery Point', 'apaczka-pl-mapa-punktow' ) . ': ' . $apaczka_delivery_point['apm_foreign_access_point_id'] . ' (' . $apaczka_delivery_point['apm_supplier'] . ')';
+			$raw_address['company']    = esc_html__( 'Delivery Point', 'apaczka-pl-mapa-punktow' ) . ': ' . $apaczka_delivery_point['apm_foreign_access_point_id'] . ' (' . $apaczka_delivery_point['apm_supplier'] . ')';
 			$raw_address['address_1']  = $apaczka_delivery_point['apm_street'];
 			$raw_address['address_2']  = '';
 			$raw_address['city']       = $apaczka_delivery_point['apm_city'];
 			$raw_address['state']      = '';
 			$raw_address['postcode']   = $apaczka_delivery_point['apm_postal_code'];
-			$raw_address['country']    = $apaczka_delivery_point['apm_country_code'];
+			$raw_address['country']    = ! empty( $apaczka_delivery_point['apm_country_code'] ) ? $apaczka_delivery_point['apm_country_code'] : '';
 		}
 
 		return $raw_address;

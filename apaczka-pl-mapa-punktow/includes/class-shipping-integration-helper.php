@@ -35,9 +35,9 @@ class WC_Shipping_Integration_Helper {
 		$settings['supplier_apaczka_map'] = array(
 			'title'   => esc_html__( 'Apaczka.pl Supplier', 'apaczka-pl-mapa-punktow' ),
 			'type'    => 'select',
-			'default' => 'all',
+			'default' => 'ALL',
 			'options' => array(
-				'all'        => __( 'All', 'apaczka-pl-mapa-punktow' ),
+				'ALL'        => __( 'All', 'apaczka-pl-mapa-punktow' ),
 				'DHL_PARCEL' => __( 'DHL', 'apaczka-pl-mapa-punktow' ),
 				'DPD'        => __( 'DPD', 'apaczka-pl-mapa-punktow' ),
 				'INPOST'     => __( 'Inpost', 'apaczka-pl-mapa-punktow' ),

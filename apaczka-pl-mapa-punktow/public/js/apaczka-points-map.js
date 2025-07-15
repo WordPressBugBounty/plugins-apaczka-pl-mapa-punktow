@@ -1,40 +1,79 @@
 (function ($) {
-	var hide_services_cod;
-	var criteria;
-	var apaczkaMap = new ApaczkaMap();
+
+	window.apaczka_mp_map_callback = function (point) {
+		console.log( point );
+		let point_brand = '';
+		if ( 'brand' in point ) {
+			point_brand = point.brand + ' ' + point.code;
+		} else {
+			point_brand = point.code;
+		}
+
+		let visible_point_desc = point_brand;
+		if ('description' in point) {
+			visible_point_desc += '<br>' + point.description;
+		}
+		if ('street' in point) {
+			visible_point_desc += '<br>' + point.street;
+		}
+		if ('city' in point) {
+			visible_point_desc += '<br>' + point.city;
+		}
+		if ('postalCode' in point) {
+			visible_point_desc += '<br>' + point.postalCode;
+		}
+
+		$( '#apm_name' ).val( point.description );
+		$( '#apm_city' ).val( point.city );
+		$( '#apm_street' ).val( point.street );
+		$( '#apm_postal_code' ).val( point.postalCode );
+		$( '#apm_country_code' ).val( 'PL' );
+		$( '#apm_supplier' ).val( point.operator );
+		$( '#apm_access_point_id' ).val( point.code );
+		$( '#apm_foreign_access_point_id' ).val( point.code );
+
+		$( '#amp-delivery-point-desc' ).html(
+			apaczka_points_map.translation.delivery_point + ' : ' +
+			visible_point_desc
+		);
+		$( '#amp-delivery-point-desc' ).show();
+
+		let map_modal = document.getElementById( 'apaczka_mp_geowidget_modal_dynamic' );
+		if ( typeof map_modal != 'undefined' && map_modal !== null ) {
+			map_modal.style.display = 'none';
+		}
+	}
 
 	$( document ).ready(
 		function () {
+
+			console.log( 'Apaczka MP: classic checkout' );
+			console.log( window );
+
 			$( document.body ).on(
 				'updated_checkout',
 				function (evt, data) {
-					//console.log( "wc data" );
-					//console.log( data );
 
-					apaczkaMap = new ApaczkaMap(
-						{
-							app_id : apaczka_points_map.app_id,
-							onChange : function ( record) {
-								if (record) {
-									if (record) {
-										$( "#apm_supplier" ).val( record.supplier );
-										$( "#apm_access_point_id" ).val( record.access_point_id );
-										$( "#apm_name" ).val( record.name );
-										$( "#apm_foreign_access_point_id" ).val( record.foreign_access_point_id );
-										$( "#apm_street" ).val( record.street );
-										$( "#apm_city" ).val( record.city );
-										$( "#apm_postal_code" ).val( record.postal_code );
-										$( "#apm_country_code" ).val( record.country_code );
-										$( '#amp-delivery-point-desc' ).html(
-											apaczka_points_map.translation.delivery_point + ' : ' +
-											record.foreign_access_point_id + ' (' + record.supplier + ')<br>' +
-											record.name + '<br>' +
-											record.street + '<br>' +
-											record.postal_code + ' ' + record.city
-										);
-										$( '#amp-delivery-point-desc' ).show();
-									}
-								}
+					let apaczka_geowidget_modal       = document.createElement( 'div' );
+					let modal_html                    = '<div ' +
+						'class="apaczka_mp_geowidget_modal" style="display:none;"' +
+						' id="apaczka_mp_geowidget_modal_dynamic" style="display: none">' +
+						'<div class="apaczka_mp_geowidget_modal_inner">' +
+						'<span id="apaczka_mp_geowidget_modal_cross">&times;</span>' +
+						'<div id="apaczka_mp_geowidget_modal_inner_content"></div>' +
+						'</div>' +
+						'</div>';
+					apaczka_geowidget_modal.innerHTML = modal_html;
+
+					document.body.appendChild( apaczka_geowidget_modal );
+
+					$( '#apaczka_mp_geowidget_modal_cross' ).on(
+						'click',
+						function () {
+
+							let map_modal = document.getElementById( 'apaczka_mp_geowidget_modal_dynamic' );
+							if (typeof map_modal != 'undefined' && map_modal !== null) {
+								map_modal.style.display = 'none';
 							}
 						}
 					);
@@ -42,56 +81,125 @@
 					$( '#amp-map-button' ).on(
 						"click",
 						function () {
-							if ( data.fragments.data_only_cod === 'yes' ) {
-								hide_services_cod = true;
-								criteria          = [
-									{ field: 'services_cod', operator: 'eq', value: true },
-									{ field: 'services_receiver', operator: 'eq', value: true }
-								];
-							} else {
-								hide_services_cod = false;
-								criteria          = [
-									{ field: 'services_receiver', operator: 'eq', value: true }
-								];
+							let map_config    = apaczka_points_map.map_config;
+							let data_only_cod = null;
+							let data_supplier = null;
+
+							let checked_shipping_input = jQuery( '#shipping_method' ).find( 'input[name^="shipping_method["]:checked' );
+							if ( typeof checked_shipping_input != 'undefined' && checked_shipping_input !== null) {
+								let id          = jQuery( checked_shipping_input ).val();
+								let instance_id = null;
+								let method_data = null;
+								if (typeof id != 'undefined' && id !== null) {
+									method_data = id.split( ":" );
+									instance_id = method_data[method_data.length - 1];
+								}
+
+								if ( typeof map_config != 'undefined' && map_config !== null) {
+									let map_config_settings = map_config[instance_id];
+									if ( typeof map_config_settings != 'undefined' && map_config_settings !== null) {
+										data_only_cod = map_config_settings.geowidget_only_cod;
+										data_supplier = map_config_settings.geowidget_supplier;
+										console.log( 'data_supplier' );
+										console.log( data_supplier );
+									}
+								}
 							}
 
-							apaczkaMap.criteria        = criteria;
-							apaczkaMap.hideServicesCod = hide_services_cod;
+							let bp_only_code_param = false;
+							let operators          = [];
 
-							if ( data.fragments.data_supplier !== 'all' ) {
-								apaczkaMap.setFilterSupplierAllowed(
-									[data.fragments.data_supplier],
-									[data.fragments.data_supplier],
-								);
-							} else {
-								apaczkaMap.setFilterSupplierAllowed(
-									['DHL_PARCEL', 'DPD', 'INPOST', 'PWR', 'POCZTA', 'UPS'],
-									['DHL_PARCEL', 'DPD', 'INPOST', 'PWR', 'POCZTA', 'UPS'],
-								);
+							if ( data_only_cod === 'yes' ) {
+								bp_only_code_param
 							}
 
-							let country_code     = 'PL';
-							let shipping_country = jQuery( '#shipping_country' );
+							function apaczka_mp_create_operator_obj(operatorId, operatorName) {
+
+								operatorName = operatorName.toUpperCase();
+
+								if ( 'DHL_PARCEL' === operatorName ) {
+									operatorName = 'DHL';
+								}
+								if ( 'PWR' === operatorName ) {
+									operatorName = 'RUCH';
+								}
+
+								return {
+									operator: operatorName,
+									price: null
+								};
+							}
+
+							if ( data_supplier ) {
+								operators = data_supplier.map(
+									function (operator) {
+										return apaczka_mp_create_operator_obj( 'operators-' + operator, operator );
+									}
+								).filter( Boolean );
+								operators = operators.length ? operators : null;
+
+							} else {
+								operators = [
+									{operator: "RUCH", price: null},
+									{operator: "INPOST", price: null},
+									{operator: "POCZTA", price: null},
+									{operator: "DPD", price: null},
+									{operator: "UPS", price: null},
+									{operator: "DHL", price: null},
+									{operator: "INPOST_INTERNATIONAL", price: null}
+								]
+							}
+
+							let initial_map_address = '';
+							let country_code        = 'PL';
+							let shipping_country    = $( '#shipping_country' );
 							if (typeof shipping_country != 'undefined' && shipping_country !== null) {
-								country_code = jQuery( shipping_country ).val();
-								if (typeof country_code != 'undefined' && country_code !== null) {
-									apaczkaMap.setCountryCode( country_code );
+								let country_code_val = $( shipping_country ).val();
+								if (typeof country_code_val != 'undefined' && country_code_val !== null) {
+									country_code = country_code_val;
 								} else {
-									let billing_country = jQuery( '#billing_country' );
+									let billing_country = $( '#billing_country' );
 									if (typeof billing_country != 'undefined' && billing_country !== null) {
-										country_code = jQuery( billing_country ).val();
-										if (typeof country_code != 'undefined' && country_code !== null) {
-											apaczkaMap.setCountryCode( country_code );
+										country_code_val = $( billing_country ).val();
+										if (typeof country_code_val != 'undefined' && country_code_val !== null) {
+											country_code = country_code_val;
 										}
 									}
 								}
 							}
 
-							apaczkaMap.show(
+							let city = $( '#billing_city' ).val();
+							if (typeof city != 'undefined' && city !== null) {
+								initial_map_address = city;
+							} else {
+								let city_2 = $( '#shipping_city' ).val();
+								if (typeof city_2 != 'undefined' && city_2 !== null) {
+									initial_map_address = city_2;
+								}
+							}
+
+							BPWidget.init(
+								document.getElementById( 'apaczka_mp_geowidget_modal_inner_content' ),
 								{
-									address : {street: data.fragments.data_shipping_address, city: data.fragments.data_shipping_city},
+									callback: function (point) {
+										window.apaczka_mp_map_callback( point );
+									},
+									posType: 'DELIVERY',
+									mapOptions: { zoom: 12 },
+									codOnly: bp_only_code_param,
+									operatorMarkers: true,
+									countryCodes: 'PL',
+									initialAddress: initial_map_address,
+									operators: operators,
+									codeSearch: true
 								}
 							);
+
+							let map_modal = document.getElementById( 'apaczka_mp_geowidget_modal_dynamic' );
+							if ( typeof map_modal != 'undefined' && map_modal !== null ) {
+								map_modal.style.display = 'flex';
+							}
+
 						}
 					);
 
@@ -101,8 +209,45 @@
 							$( '#amp-delivery-point-desc' ).html( '' );
 							$( '#amp-delivery-point-desc' ).hide();
 							$( '#apm_access_point_id' ).val( '' );
+
+							let id = jQuery( this ).val();
+							console.log( 'input.shipping_method' );
+							console.log( id );
+							let instance_id = null;
+							let method_data = null;
+							if (typeof id != 'undefined' && id !== null) {
+								method_data = id.split( ":" );
+								instance_id = method_data[method_data.length - 1];
+							}
+							let map_config = apaczka_points_map.map_config;
+							if ( typeof map_config != 'undefined' && map_config !== null) {
+								let map_config_settings = map_config[instance_id];
+								console.log( 'AMP map_config_settings' );
+								console.log( map_config_settings );
+								if ( typeof map_config_settings != 'undefined' && map_config_settings !== null) {
+									$( '#amp-map-button' ).removeClass( 'hidden' );
+								} else {
+									$( '#amp-map-button' ).addClass( 'hidden' );
+								}
+							}
 						}
 					);
+				}
+			);
+
+			document.addEventListener(
+				'click',
+				function (e) {
+					e          = e || window.event;
+					var target = e.target || e.srcElement;
+					if ( target.hasAttribute( 'id' ) ) {
+						if (target.getAttribute( 'id' ) === 'apaczka_mp_geowidget_modal_cross') {
+							let map_modal = document.getElementById( 'apaczka_mp_geowidget_modal_dynamic' );
+							if (typeof map_modal != 'undefined' && map_modal !== null) {
+								map_modal.style.display = 'none';
+							}
+						}
+					}
 				}
 			);
 		}

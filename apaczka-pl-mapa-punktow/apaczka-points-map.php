@@ -2,14 +2,14 @@
 /**
  * Plugin Name: Apaczka.pl Mapa Punktów
  * Description: Wtyczka pozwoli Ci w prosty sposób skonfigurować i wyświetlić mapę punktów dla twoich metod dostawy tak aby twój Klient mógł wybrać punkt, z którego chce odebrać przesyłkę.
- * Version:     1.3.9
+ * Version:     1.4.0
  * Text Domain: apaczka-pl-mapa-punktow
  * Author:      Inspire Labs
  * Author URI:  https://inspirelabs.pl/
 
  * Domain Path: /languages
  *
- * WC tested up to: 9.1.2
+ * WC tested up to: 9.9.5
  *
  * Copyright 2020 Inspire Labs sp. z o.o.
  *
@@ -70,12 +70,15 @@ class Points_Map_Plugin {
 			'woocommerce_blocks_checkout_block_registration',
 			function ( $integration_registry ) {
 				require_once APACZKA_POINTS_MAP_DIR . 'includes/class-woo-blocks-integration.php';
-				//if( ! function_exists( 'apaczka' ) ) {
-                    $integration_registry->register(new ApaczkaMP_Woo_Blocks_Integration());
-                //}
+				$integration_registry->register( new ApaczkaMP_Woo_Blocks_Integration() );
 			}
 		);
-		add_action( 'woocommerce_store_api_checkout_update_order_from_request', array( $this, 'save_shipping_point_in_order_meta' ), 10, 2 );
+		add_action(
+			'woocommerce_store_api_checkout_update_order_from_request',
+			array( $this, 'save_shipping_point_in_order_meta' ),
+			10,
+			2
+		);
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_blocks_scripts' ) );
 		// integration with Woocommerce blocks end.
 	}
@@ -84,27 +87,59 @@ class Points_Map_Plugin {
 	 * Includes front scripts.
 	 */
 	public function enqueue_front_scripts() {
+
 		if ( ! function_exists( 'get_plugin_data' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 
 		$plugin_data = get_plugin_data( __FILE__ );
 
-		if ( is_checkout() || has_block( 'woocommerce/checkout' ) ) {
-			wp_enqueue_style( 'apaczka-points-map-style', APACZKA_POINTS_MAP_DIR_URL . 'public/css/apaczka-points-map.css', '', $plugin_data['Version'] );
-			wp_enqueue_script( 'apaczka-client-map-js', APACZKA_POINTS_MAP_DIR_URL . 'public/js/apaczka-client-map.js', '', $plugin_data['Version'], false );
-			wp_enqueue_script( 'apaczka-points-map-handler', APACZKA_POINTS_MAP_DIR_URL . 'public/js/apaczka-points-map.js', array( 'apaczka-client-map-js', 'jquery', 'wc-checkout' ), $plugin_data['Version'], false );
+		if ( $this->is_enable() && ( is_checkout() || has_block( 'woocommerce/checkout' ) ) ) {
+
+			wp_enqueue_style(
+				'apaczka-points-map-style',
+				APACZKA_POINTS_MAP_DIR_URL . 'public/css/apaczka-points-map.css',
+				'',
+				$plugin_data['Version']
+			);
+			wp_enqueue_style(
+				'apaczka-points-map-bliskapaczka-style',
+				APACZKA_POINTS_MAP_DIR_URL . 'public/css/bliskapaczka-map.css',
+				'',
+				$plugin_data['Version']
+			);
+			wp_enqueue_script(
+				'bliskpaczka-client-map',
+				APACZKA_POINTS_MAP_DIR_URL . 'public/js/bliskapaczka-map.js',
+				array( 'jquery' ),
+				$plugin_data['Version'],
+				array( 'in_footer' => true )
+			);
+		}
+
+		if ( $this->is_enable() && is_checkout() && ! has_block( 'woocommerce/checkout' ) ) {
+
+			wp_enqueue_script(
+				'apaczka-points-map-handler',
+				APACZKA_POINTS_MAP_DIR_URL . 'public/js/apaczka-points-map.js',
+				array( 'bliskpaczka-client-map', 'jquery', 'wc-checkout' ),
+				$plugin_data['Version'],
+				false
+			);
 
 			$app_id = isset( WC()->integrations->integrations['woocommerce-maps-apaczka']->settings['app_id'] ) ? WC()->integrations->integrations['woocommerce-maps-apaczka']->settings['app_id'] : null;
+
+			$map_config = $this->get_map_config();
 
 			wp_localize_script(
 				'apaczka-points-map-handler',
 				'apaczka_points_map',
 				array(
 					'translation' => array(
-						'delivery_point' => __( 'Delivery Point', 'apaczka-pl-mapa-punktow' ),
+						'delivery_point' => esc_html__( 'Delivery Point', 'apaczka-pl-mapa-punktow' ),
 					),
 					'app_id'      => $app_id,
+					'map_config'  => $map_config,
 				)
 			);
 		}
@@ -198,7 +233,7 @@ class Points_Map_Plugin {
 	 */
 	public function enqueue_frontend_blocks_scripts() {
 
-		if ( is_checkout() || has_block( 'woocommerce/checkout' ) ) {
+		if ( $this->is_enable() && has_block( 'woocommerce/checkout' ) ) {
 
 			if ( has_block( 'woocommerce/checkout' ) ) {
 				$map_config = $this->get_map_config();
@@ -208,7 +243,7 @@ class Points_Map_Plugin {
 					'apaczka-mp-front-blocks',
 					APACZKA_POINTS_MAP_DIR_URL . 'public/js/blocks/front-blocks.js',
 					array( 'jquery' ),
-					file_exists( $front_blocks_js_path ) ? filemtime( $front_blocks_js_path ) : '1.3.7',
+					file_exists( $front_blocks_js_path ) ? filemtime( $front_blocks_js_path ) : '1.4.0',
 					array(
 						'in_footer' => true,
 					)
@@ -250,7 +285,7 @@ class Points_Map_Plugin {
 					$geowidget_supplier = $shipping_method->instance_settings['supplier_apaczka_map'];
 
 					if ( 'all' === $geowidget_supplier || 'ALL' === $geowidget_supplier ) {
-						$config[ $instance_id ]['geowidget_supplier'] = array( 'DHL_PARCEL', 'DPD', 'INPOST', 'POCZTA', 'UPS', 'PWR' );
+						$config[ $instance_id ]['geowidget_supplier'] = array( 'DHL', 'DPD', 'INPOST', 'POCZTA', 'UPS', 'RUCH' );
 					} else {
 						$single_carrier                               = $shipping_method->instance_settings['supplier_apaczka_map'];
 						$config[ $instance_id ]['geowidget_supplier'] = array( $single_carrier );
@@ -263,24 +298,76 @@ class Points_Map_Plugin {
 
 		return $config;
 	}
-}
 
-if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ), true ) ) {
-	new Points_Map_Plugin();
-	require_once APACZKA_POINTS_MAP_DIR . 'includes/class-shipping-integration-helper.php';
-	require_once APACZKA_POINTS_MAP_DIR . 'includes/class-wc-shipping-integration.php';
-	require_once APACZKA_POINTS_MAP_DIR . 'includes/class-delivery-points-map.php';
 
-	add_action(
-		'before_woocommerce_init',
-		function () {
-			if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
-				\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+	/**
+	 * Checks if the plugin is to be enabled.
+	 *
+	 * @return bool
+	 */
+	private function is_enable() {
+
+		$is_active = true;
+
+		if ( is_object( \WC() ) ) {
+
+			if ( ! isset( \WC()->integrations->integrations['woocommerce-maps-apaczka']->settings['correct_api_connection'] ) ||
+				'no' === \WC()->integrations->integrations['woocommerce-maps-apaczka']->settings['correct_api_connection']
+			) {
+				$is_active = false;
+			} elseif ( \WC()->cart->needs_shipping() && \WC()->cart->show_shipping() ) {
+				$is_active = true;
+			} else {
+				$is_active = false;
 			}
 		}
-	);
 
-	if ( in_array( 'flexible-shipping/flexible-shipping.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ), true ) ) {
-		require_once APACZKA_POINTS_MAP_DIR . 'includes/class-flexible-shipping-integration.php';
+		return $is_active;
 	}
 }
+
+add_action(
+	'after_setup_theme',
+	function () {
+		if (
+			( function_exists( 'is_plugin_active' ) && is_plugin_active( 'woocommerce/woocommerce.php' ) )
+			|| in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) )
+			|| ( defined( 'WC_PLUGIN_FILE' ) && defined( 'WC_VERSION' ) )
+		) {
+			new Points_Map_Plugin();
+			require_once APACZKA_POINTS_MAP_DIR . 'includes/class-shipping-integration-helper.php';
+			require_once APACZKA_POINTS_MAP_DIR . 'includes/class-wc-shipping-integration.php';
+			require_once APACZKA_POINTS_MAP_DIR . 'includes/class-delivery-points-map.php';
+
+			if ( in_array( 'flexible-shipping/flexible-shipping.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ), true ) ) {
+				require_once APACZKA_POINTS_MAP_DIR . 'includes/class-flexible-shipping-integration.php';
+			}
+		} else {
+			add_action(
+				'admin_notices',
+				function () {
+					$message = sprintf(
+					/* translators: Placeholders: %1$s and %3$s are <strong> tags. %2$s and %4$s are text */
+						'%1$s %2$s %3$s %4$s',
+						'<strong>',
+						esc_html__( 'Apaczka.pl Mapa Punktów', 'apaczka-pl-mapa-punktow' ),
+						'</strong>',
+						esc_html__( 'requires WooCommerce to function.', 'apaczka-pl-mapa-punktow' )
+					);
+					printf( '<div class="error"><p>%s</p></div>', wp_kses_post( $message ) );
+				}
+			);
+			return;
+		}
+	}
+);
+
+
+add_action(
+	'before_woocommerce_init',
+	function () {
+		if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+		}
+	}
+);
