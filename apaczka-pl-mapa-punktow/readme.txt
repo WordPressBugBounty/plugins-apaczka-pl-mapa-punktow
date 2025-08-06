@@ -4,7 +4,7 @@ Donate link: https://www. inspirelabs.pl/
 Tags: apaczka, woocommerce
 Requires at least: 4.0
 Tested up to: 6.8
-Stable tag: 1.4.0
+Stable tag: 1.4.1
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -46,6 +46,9 @@ Jeżeli nie masz jeszcze konta w Apaczka, zapoznaj się z możliwościami i skon
 [https://www.apaczka.pl/import-woocommerce-instrukcja/](https://www.apaczka.pl/import-woocommerce-instrukcja/)
 
 == Changelog ==
+
+= 1.4.1 - 2025.08.06 =
+* Fix: InPost International on the map
 
 = 1.4.0 - 2025.07.14 =
 * Fix: switching map config

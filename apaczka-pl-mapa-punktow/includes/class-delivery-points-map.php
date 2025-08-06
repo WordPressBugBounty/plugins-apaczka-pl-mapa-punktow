@@ -62,12 +62,6 @@ class Delivery_Point_Map {
 			'no' === WC()->integrations->integrations['woocommerce-maps-apaczka']->settings['correct_api_connection']
 		) {
 			$is_active = false;
-		} else {
-			if ( WC()->cart->needs_shipping() && WC()->cart->show_shipping() ) {
-				$is_active = true;
-			} else {
-				$is_active = false;
-			}
 		}
 
 		return $is_active;

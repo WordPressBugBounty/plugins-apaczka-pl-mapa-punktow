@@ -48,7 +48,10 @@
 		function () {
 
 			console.log( 'Apaczka MP: classic checkout' );
-			console.log( window );
+			// console.log( window );
+
+			let initial_map_address = '';
+			let country_code        = '';
 
 			$( document.body ).on(
 				'updated_checkout',
@@ -150,19 +153,19 @@
 								]
 							}
 
-							let initial_map_address = '';
-							let country_code        = 'PL';
-							let shipping_country    = $( '#shipping_country' );
-							if (typeof shipping_country != 'undefined' && shipping_country !== null) {
-								let country_code_val = $( shipping_country ).val();
-								if (typeof country_code_val != 'undefined' && country_code_val !== null) {
-									country_code = country_code_val;
-								} else {
-									let billing_country = $( '#billing_country' );
-									if (typeof billing_country != 'undefined' && billing_country !== null) {
-										country_code_val = $( billing_country ).val();
-										if (typeof country_code_val != 'undefined' && country_code_val !== null) {
-											country_code = country_code_val;
+							if ('' === country_code || typeof country_code === 'undefined' || country_code === null) {
+								let shipping_country = $('#shipping_country');
+								if (typeof shipping_country != 'undefined' && shipping_country !== null) {
+									let country_code_val = $(shipping_country).val();
+									if (typeof country_code_val != 'undefined' && country_code_val !== null) {
+										country_code = country_code_val;
+									} else {
+										let billing_country = $('#billing_country');
+										if (typeof billing_country != 'undefined' && billing_country !== null) {
+											country_code_val = $(billing_country).val();
+											if (typeof country_code_val != 'undefined' && country_code_val !== null) {
+												country_code = country_code_val;
+											}
 										}
 									}
 								}
@@ -178,6 +181,10 @@
 								}
 							}
 
+							console.log( 'BPWidget.init' );
+							console.log( operators );
+							console.log( country_code );
+
 							BPWidget.init(
 								document.getElementById( 'apaczka_mp_geowidget_modal_inner_content' ),
 								{
@@ -188,7 +195,7 @@
 									mapOptions: { zoom: 12 },
 									codOnly: bp_only_code_param,
 									operatorMarkers: true,
-									countryCodes: 'PL',
+									countryCodes: country_code,
 									initialAddress: initial_map_address,
 									operators: operators,
 									codeSearch: true
@@ -250,6 +257,40 @@
 					}
 				}
 			);
+
+			$( '#billing_country' ).on(
+				'change',
+				function () {
+					country_code = $( this ).val();
+				}
+			);
+			$( '#shipping_country' ).on(
+				'change',
+				function () {
+					country_code = $( this ).val();
+				}
+			);
+			$( '#billing_country' ).on(
+				'change select2:select',
+				function (e) {
+					if (e.type === 'select2:select') {
+						country_code = e.params.data.id;
+					} else {
+						country_code = $( this ).val();
+					}
+				}
+			);
+			$( '#shipping_country' ).on(
+				'change select2:select',
+				function (e) {
+					if (e.type === 'select2:select') {
+						country_code = e.params.data.id;
+					} else {
+						country_code = $( this ).val();
+					}
+				}
+			);
+
 		}
 	);
 })( jQuery );

@@ -37,13 +37,14 @@ class WC_Shipping_Integration_Helper {
 			'type'    => 'select',
 			'default' => 'ALL',
 			'options' => array(
-				'ALL'        => __( 'All', 'apaczka-pl-mapa-punktow' ),
-				'DHL_PARCEL' => __( 'DHL', 'apaczka-pl-mapa-punktow' ),
-				'DPD'        => __( 'DPD', 'apaczka-pl-mapa-punktow' ),
-				'INPOST'     => __( 'Inpost', 'apaczka-pl-mapa-punktow' ),
-				'PWR'        => __( 'Orlen Paczka', 'apaczka-pl-mapa-punktow' ),
-				'POCZTA'     => __( 'Poczta Polska', 'apaczka-pl-mapa-punktow' ),
-				'UPS'        => __( 'UPS', 'apaczka-pl-mapa-punktow' ),
+				'ALL'                  => __( 'All', 'apaczka-pl-mapa-punktow' ),
+				'DHL_PARCEL'           => __( 'DHL', 'apaczka-pl-mapa-punktow' ),
+				'DPD'                  => __( 'DPD', 'apaczka-pl-mapa-punktow' ),
+				'INPOST'               => __( 'Inpost', 'apaczka-pl-mapa-punktow' ),
+				'INPOST_INTERNATIONAL' => __( 'Inpost International', 'apaczka-pl-mapa-punktow' ),
+				'PWR'                  => __( 'Orlen Paczka', 'apaczka-pl-mapa-punktow' ),
+				'POCZTA'               => __( 'Poczta Polska', 'apaczka-pl-mapa-punktow' ),
+				'UPS'                  => __( 'UPS', 'apaczka-pl-mapa-punktow' ),
 			),
 		);
 

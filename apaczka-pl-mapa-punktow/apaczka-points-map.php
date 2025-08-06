@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Apaczka.pl Mapa Punktów
  * Description: Wtyczka pozwoli Ci w prosty sposób skonfigurować i wyświetlić mapę punktów dla twoich metod dostawy tak aby twój Klient mógł wybrać punkt, z którego chce odebrać przesyłkę.
- * Version:     1.4.0
+ * Version:     1.4.1
  * Text Domain: apaczka-pl-mapa-punktow
  * Author:      Inspire Labs
  * Author URI:  https://inspirelabs.pl/
@@ -117,7 +117,15 @@ class Points_Map_Plugin {
 			);
 		}
 
-		if ( $this->is_enable() && is_checkout() && ! has_block( 'woocommerce/checkout' ) ) {
+		$enqueue_script_classic_checkout = false;
+		if ( is_checkout() && ! has_block( 'woocommerce/checkout' ) ) {
+			$enqueue_script_classic_checkout = true;
+		}
+		if ( is_checkout() && class_exists( 'FluidCheckout' ) ) {
+			$enqueue_script_classic_checkout = true;
+		}
+
+		if ( $this->is_enable() && $enqueue_script_classic_checkout ) {
 
 			wp_enqueue_script(
 				'apaczka-points-map-handler',
@@ -144,6 +152,7 @@ class Points_Map_Plugin {
 			);
 		}
 	}
+
 
 	/**
 	 * Include class integration with WooCommerce.
@@ -243,7 +252,7 @@ class Points_Map_Plugin {
 					'apaczka-mp-front-blocks',
 					APACZKA_POINTS_MAP_DIR_URL . 'public/js/blocks/front-blocks.js',
 					array( 'jquery' ),
-					file_exists( $front_blocks_js_path ) ? filemtime( $front_blocks_js_path ) : '1.4.0',
+					file_exists( $front_blocks_js_path ) ? filemtime( $front_blocks_js_path ) : '1.4.1',
 					array(
 						'in_footer' => true,
 					)
@@ -310,14 +319,9 @@ class Points_Map_Plugin {
 		$is_active = true;
 
 		if ( is_object( \WC() ) ) {
-
 			if ( ! isset( \WC()->integrations->integrations['woocommerce-maps-apaczka']->settings['correct_api_connection'] ) ||
 				'no' === \WC()->integrations->integrations['woocommerce-maps-apaczka']->settings['correct_api_connection']
 			) {
-				$is_active = false;
-			} elseif ( \WC()->cart->needs_shipping() && \WC()->cart->show_shipping() ) {
-				$is_active = true;
-			} else {
 				$is_active = false;
 			}
 		}
