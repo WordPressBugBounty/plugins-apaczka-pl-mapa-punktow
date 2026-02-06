@@ -50,7 +50,7 @@
                 }
             }
             const h = window.apaczka_block && window.apaczka_block.map_config ? window.apaczka_block.map_config : {};
-            console.log("selectedShippingInstanceID"), console.log(p), console.log("mapConfig"), console.log(h), null != h && 0 !== Object.keys(h).length && h.hasOwnProperty(p) && (i = !0);
+            /*console.log("selectedShippingInstanceID"), console.log(p),*/ /*console.log("mapConfig"), console.log(h),*/ null != h && 0 !== Object.keys(h).length && h.hasOwnProperty(p) && (i = !0);
             const _ = (0, t.useCallback)((() => {
                 if (s || !i) return m(d), !0;
                 i && k({

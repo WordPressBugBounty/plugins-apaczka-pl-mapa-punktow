@@ -6,7 +6,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/apaczka-points-"
 "map\n"
 "POT-Creation-Date: 2021-01-14T07:05:34+01:00\n"
-"PO-Revision-Date: 2024-02-09 16:29+0300\n"
+"PO-Revision-Date: 2025-12-19 17:15+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: pl_PL\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && "
 "(n%100<12 || n%100>14) ? 1 : 2);\n"
-"X-Generator: Poedit 3.2.2\n"
+"X-Generator: Poedit 3.6\n"
 "X-Domain: apaczka-pl-mapa-punktow\n"
 
 #. Plugin Name of the plugin
@@ -164,3 +164,12 @@ msgstr "Należy wybrać punkt dostawy"
 #: apaczka-points-map.php:197
 msgid "Selected Parcel Locker:"
 msgstr "Wybrany punkt dostawy"
+
+msgid "Help:"
+msgstr "Pomoc:"
+
+msgid "Contact form"
+msgstr "Formularz kontaktowy"
+
+msgid "An alternative way to show the map button"
+msgstr "Alternatywny sposób wyświetlania przycisku mapy"

@@ -4,7 +4,7 @@
  *
  * @package Apaczka Mapa Punktów
  * @author  InspireLabs
- * @link    https://inspirelabs.pl/
+ * @link    https://ilabs.dev/
  */
 
 // Silence is golden.

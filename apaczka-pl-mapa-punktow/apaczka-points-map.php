@@ -2,14 +2,14 @@
 /**
  * Plugin Name: Apaczka.pl Mapa Punktów
  * Description: Wtyczka pozwoli Ci w prosty sposób skonfigurować i wyświetlić mapę punktów dla twoich metod dostawy tak aby twój Klient mógł wybrać punkt, z którego chce odebrać przesyłkę.
- * Version:     1.4.1
+ * Version:     1.4.4
  * Text Domain: apaczka-pl-mapa-punktow
  * Author:      Inspire Labs
- * Author URI:  https://inspirelabs.pl/
+ * Author URI:  https://ilabs.dev/
 
  * Domain Path: /languages
  *
- * WC tested up to: 9.9.5
+ * WC tested up to: 10.4.3
  *
  * Copyright 2020 Inspire Labs sp. z o.o.
  *
@@ -70,7 +70,10 @@ class Points_Map_Plugin {
 			'woocommerce_blocks_checkout_block_registration',
 			function ( $integration_registry ) {
 				require_once APACZKA_POINTS_MAP_DIR . 'includes/class-woo-blocks-integration.php';
-				$integration_registry->register( new ApaczkaMP_Woo_Blocks_Integration() );
+                if ( class_exists('Apaczka_Points_Map\ApaczkaMP_Woo_Blocks_Integration' ) ) {
+                    $integration_registry->register( new ApaczkaMP_Woo_Blocks_Integration() );
+                }
+				
 			}
 		);
 		add_action(
@@ -96,6 +99,17 @@ class Points_Map_Plugin {
 
 		if ( $this->is_enable() && ( is_checkout() || has_block( 'woocommerce/checkout' ) ) ) {
 
+			$is_virtual_products = false;
+			if ( is_object( WC()->cart ) ) {
+				if ( ! WC()->cart->needs_shipping() ) {
+					$is_virtual_products = true;
+				}
+			}
+
+			if ( $is_virtual_products ) {
+				return;
+			}
+
 			wp_enqueue_style(
 				'apaczka-points-map-style',
 				APACZKA_POINTS_MAP_DIR_URL . 'public/css/apaczka-points-map.css',
@@ -104,13 +118,13 @@ class Points_Map_Plugin {
 			);
 			wp_enqueue_style(
 				'apaczka-points-map-bliskapaczka-style',
-				APACZKA_POINTS_MAP_DIR_URL . 'public/css/bliskapaczka-map.css',
+				'https://map.alsendo.com/v8.6/main.css',
 				'',
 				$plugin_data['Version']
 			);
 			wp_enqueue_script(
 				'bliskpaczka-client-map',
-				APACZKA_POINTS_MAP_DIR_URL . 'public/js/bliskapaczka-map.js',
+				'https://map.alsendo.com/v8.6/main.js',
 				array( 'jquery' ),
 				$plugin_data['Version'],
 				array( 'in_footer' => true )
@@ -252,7 +266,7 @@ class Points_Map_Plugin {
 					'apaczka-mp-front-blocks',
 					APACZKA_POINTS_MAP_DIR_URL . 'public/js/blocks/front-blocks.js',
 					array( 'jquery' ),
-					file_exists( $front_blocks_js_path ) ? filemtime( $front_blocks_js_path ) : '1.4.1',
+					file_exists( $front_blocks_js_path ) ? filemtime( $front_blocks_js_path ) : '1.4.2',
 					array(
 						'in_footer' => true,
 					)
@@ -293,7 +307,7 @@ class Points_Map_Plugin {
 				if ( isset( $shipping_method->instance_settings['display_apaczka_map'] ) && 'yes' === $shipping_method->instance_settings['display_apaczka_map'] ) {
 					$geowidget_supplier = $shipping_method->instance_settings['supplier_apaczka_map'];
 
-					if ( 'all' === $geowidget_supplier || 'ALL' === $geowidget_supplier ) {
+					if ( 'ALL' === strtoupper( $geowidget_supplier ) || 'ALL_APACZKA' === strtoupper( $geowidget_supplier ) ) {
 						$config[ $instance_id ]['geowidget_supplier'] = array( 'DHL', 'DPD', 'INPOST', 'POCZTA', 'UPS', 'RUCH' );
 					} else {
 						$single_carrier                               = $shipping_method->instance_settings['supplier_apaczka_map'];

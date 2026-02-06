@@ -275,8 +275,8 @@
 									let key                        = instance_id;
 									let shipping_config            = apaczka_block.map_config[key];
 									let apaczka_geowidget_supplier = shipping_config.hasOwnProperty( "geowidget_supplier" ) ? shipping_config.geowidget_supplier : null;
-									console.log( 'Apaczka MP: operators' );
-									console.log( apaczka_geowidget_supplier );
+									console.log( 'Apaczka MP blocks: operators' );
+									console.log( shipping_config );
 									console.log( apaczka_mp_country );
 
 									if ( apaczka_geowidget_supplier !== null) {

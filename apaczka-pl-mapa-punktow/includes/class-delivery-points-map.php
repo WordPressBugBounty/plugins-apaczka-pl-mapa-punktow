@@ -48,6 +48,7 @@ class Delivery_Point_Map {
 		add_action( 'woocommerce_checkout_process', array( $this, 'select_delivery_point_validation' ) );
 		add_action( 'woocommerce_checkout_update_order_meta', array( $this, 'save_delivery_point_in_order_meta' ), 10, 2 );
 		add_filter( 'woocommerce_order_formatted_shipping_address', array( $this, 'delivery_point_as_shipping_address' ), 20, 2 );
+        add_action( 'woocommerce_after_shipping_rate', array( $this, 'show_map_button_debug' ), 100 );
 	}
 
 	/**
@@ -77,6 +78,10 @@ class Delivery_Point_Map {
 		if ( false === $this->is_enable() ) {
 			return $data;
 		}
+
+        if( $this->is_alternative_map_mode_enable() ) {
+            return $data;
+        }
 
 		if ( true === $this->is_delivery_map_button_display() ) {
 			$data['.amp-map-button']                 = '<span id="amp-map-button" data-supplier="' . $this->supplier . '" data-only-cod="' . $this->only_cod . '" class="button alt amp-map-button">' . __( 'Select a Delivery Point', 'apaczka-pl-mapa-punktow' ) . '</span>';
@@ -148,6 +153,10 @@ class Delivery_Point_Map {
 		if ( false === $this->is_enable() ) {
 			return null;
 		}
+
+        if( $this->is_alternative_map_mode_enable() ) {
+            return null;
+        }
 
 		?>
 		<input type="hidden" name="apm_supplier" id="apm_supplier" value="">
@@ -267,6 +276,75 @@ class Delivery_Point_Map {
 
 		return $raw_address;
 	}
+
+
+
+    /**
+     * Checks if the alternative map button mode is to be enabled.
+     *
+     * @return bool
+     */
+    private function is_alternative_map_mode_enable() {
+
+        $is_active = true;
+
+        if ( ! isset( WC()->integrations->integrations['woocommerce-maps-apaczka']->settings['map_alternative_btn'] ) ||
+             'no' === WC()->integrations->integrations['woocommerce-maps-apaczka']->settings['map_alternative_btn']
+        ) {
+            $is_active = false;
+        }
+
+        return $is_active;
+    }
+
+
+    /**
+     * Displays a map selection button for debugging purposes.
+     *
+     * Shows a "Select point" button when debug mode is enabled and the current
+     * shipping method has map configuration. Only displays when the shipping method
+     * is selected by the customer.
+     *
+     * @param object $shipping The shipping method object.
+     */
+    public function show_map_button_debug( $shipping ) {
+
+        if( ! $this->is_alternative_map_mode_enable() ) {
+            return;
+        }
+
+        $selected_method = null;
+        $method_has_config = false;
+        $selected_method_instance_id = null;
+
+        if( function_exists('WC') && property_exists( WC(), 'session') ) {
+            $chosen_shipping_methods = WC()->session->get('chosen_shipping_methods');
+            if (is_array($chosen_shipping_methods) && 1 === count($chosen_shipping_methods)) {
+                $selected_method = reset($chosen_shipping_methods);
+            }
+        }
+
+        $shipping_method_require_map = $this->is_delivery_map_button_display();
+
+        $data = explode( ':', $selected_method );
+        if( ! empty($data[1]) ) {
+            $selected_method_instance_id = (int) $data[1];
+        }
+
+        if ( $shipping_method_require_map && ( $selected_method_instance_id === $shipping->instance_id ) ) {
+
+            $allowed_html = array(
+                'div'    => array(),
+                'button' => array(
+                    'type'  => array(),
+                    'class' => array(),
+                    'id' => array(),
+                ),
+            );
+
+            echo wp_kses( '<div><button id="amp-map-button" type="button" class="button alt apaczka_mp_pl_after_rate_btn">' . esc_html__('Select a Delivery Point', 'apaczka-pl-mapa-punktow' ). '</button></div>', $allowed_html );
+        }
+    }
 }
 
 new Delivery_Point_Map();

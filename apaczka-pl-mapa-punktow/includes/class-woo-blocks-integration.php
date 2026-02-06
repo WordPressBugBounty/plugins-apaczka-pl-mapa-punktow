@@ -37,12 +37,10 @@ class ApaczkaMP_Woo_Blocks_Integration implements IntegrationInterface {
 
 		$script_url = APACZKA_POINTS_MAP_DIR_URL . 'public/js/blocks/apaczka-mp-block.js';
 
-		$dep = array(
+		$script_asset = array(
 			'dependencies' => array( 'wc-settings', 'wp-data', 'wp-blocks', 'wp-components', 'wp-element', 'wp-i18n', 'wp-primitives' ),
-			'version'      => '1.3.7',
+			'version'      => '1.4.4',
 		);
-
-		$script_asset = $dep;
 
 		wp_register_script(
 			'apaczka-mapa-punktow-wc-block',
@@ -93,6 +91,6 @@ class ApaczkaMP_Woo_Blocks_Integration implements IntegrationInterface {
 			return filemtime( $file );
 		}
 
-		return '1.3.7';
+		return '1.4.4';
 	}
 }

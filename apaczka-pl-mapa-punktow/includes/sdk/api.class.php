@@ -30,6 +30,7 @@ class Api {
 	public static $app_secret;
 
 	public static function request( $route, $data = null) {
+
 		$ch = curl_init();
 		curl_setopt( $ch, CURLOPT_URL, self::API_URL . $route );
 		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
@@ -53,7 +54,8 @@ class Api {
 
 	public static function buildRequest( $route, $data = [] ) {
 		$data = json_encode($data);
-		$expires = strtotime( self::EXPIRES );
+		//$expires = strtotime( self::EXPIRES );
+		$expires = time() + 300;
 		return [
 			'app_id'    => self::$app_id,
 			'request'   => $data,

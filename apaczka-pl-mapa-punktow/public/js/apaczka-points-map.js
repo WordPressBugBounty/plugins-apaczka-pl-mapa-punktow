@@ -2,6 +2,13 @@
 
 	window.apaczka_mp_map_callback = function (point) {
 		console.log( point );
+
+		$( '.apaczka_mp_pl_after_rate_description' ).each(
+			function (i, elem) {
+				$( elem ).remove();
+			}
+		);
+
 		let point_brand = '';
 		if ( 'brand' in point ) {
 			point_brand = point.brand + ' ' + point.code;
@@ -23,14 +30,46 @@
 			visible_point_desc += '<br>' + point.postalCode;
 		}
 
-		$( '#apm_name' ).val( point.description );
-		$( '#apm_city' ).val( point.city );
-		$( '#apm_street' ).val( point.street );
-		$( '#apm_postal_code' ).val( point.postalCode );
-		$( '#apm_country_code' ).val( 'PL' );
-		$( '#apm_supplier' ).val( point.operator );
-		$( '#apm_access_point_id' ).val( point.code );
-		$( '#apm_foreign_access_point_id' ).val( point.code );
+		$( '#apm_name' ).each(
+			function (i, elem) {
+				$( elem ).val( point.description );
+			}
+		);
+		$( '#apm_city' ).each(
+			function (i, elem) {
+				$( elem ).val( point.city );
+			}
+		);
+		$( '#apm_street' ).each(
+			function (i, elem) {
+				$( elem ).val( point.street );
+			}
+		);
+		$( '#apm_postal_code' ).each(
+			function (i, elem) {
+				$( elem ).val( point.postalCode );
+			}
+		);
+		$( '#apm_country_code' ).each(
+			function (i, elem) {
+				$( elem ).val( 'PL' );
+			}
+		);
+		$( '#apm_supplier' ).each(
+			function (i, elem) {
+				$( elem ).val( point.operator );
+			}
+		);
+		$( '#apm_access_point_id' ).each(
+			function (i, elem) {
+				$( elem ).val( point.code );
+			}
+		);
+		$( '#apm_foreign_access_point_id' ).each(
+			function (i, elem) {
+				$( elem ).val( point.code );
+			}
+		);
 
 		$( '#amp-delivery-point-desc' ).html(
 			apaczka_points_map.translation.delivery_point + ' : ' +
@@ -42,6 +81,34 @@
 		if ( typeof map_modal != 'undefined' && map_modal !== null ) {
 			map_modal.style.display = 'none';
 		}
+
+		if ($( '.apaczka_mp_pl_after_rate_btn' ).length > 0) {
+			console.log( 'apaczka_mp_pl alternative btn' );
+
+			$( '#amp-delivery-point-desc' ).each(
+				function (i, elem) {
+					$( elem ).hide();
+				}
+			);
+
+			let wrap_open = '<span id="amp-delivery-point-desc" class="apaczka_mp_pl_after_rate_description" style="display:block;margin-top: 0px;">';
+
+			visible_point_desc += '<input type="hidden" id="apm_access_point_id" name="apm_access_point_id" value="' + point.code + '"/>\n' +
+				'<input type="hidden" id="apm_supplier" name="apm_supplier" value="' + point.operator + '"/>\n' +
+				'<input type="hidden" id="apm_name" name="apm_name" value="' + point.description + '"/>\n' +
+				'<input type="hidden" id="apm_foreign_access_point_id" name="apm_foreign_access_point_id" value="' + point.code + '"/>\n' +
+				'<input type="hidden" id="apm_street" name="apm_street" value="' + point.street + '"/>\n' +
+				'<input type="hidden" id="apm_city" name="apm_city" value="' + point.city + '"/>\n' +
+				'<input type="hidden" id="apm_postal_code" name="apm_postal_code" value="' + point.postalCode + '"/>\n' +
+				'<input type="hidden" id="apm_country_code" name="apm_country_code" value="PL"/>';
+
+			let wrap_close = '</span>';
+
+			let after_rate_btn_point_desc = wrap_open + visible_point_desc + wrap_close;
+
+			$( '.apaczka_mp_pl_after_rate_btn' ).after( after_rate_btn_point_desc );
+		}
+
 	}
 
 	$( document ).ready(
@@ -84,9 +151,10 @@
 					$( '#amp-map-button' ).on(
 						"click",
 						function () {
-							let map_config    = apaczka_points_map.map_config;
-							let data_only_cod = null;
-							let data_supplier = null;
+							let map_config         = apaczka_points_map.map_config;
+							let bp_only_code_param = false;
+							let data_supplier      = null;
+							let operators          = [];
 
 							let checked_shipping_input = jQuery( '#shipping_method' ).find( 'input[name^="shipping_method["]:checked' );
 							if ( typeof checked_shipping_input != 'undefined' && checked_shipping_input !== null) {
@@ -101,19 +169,15 @@
 								if ( typeof map_config != 'undefined' && map_config !== null) {
 									let map_config_settings = map_config[instance_id];
 									if ( typeof map_config_settings != 'undefined' && map_config_settings !== null) {
-										data_only_cod = map_config_settings.geowidget_only_cod;
+										if ( 'yes' === map_config_settings.geowidget_only_cod ) {
+											bp_only_code_param = true;
+										}
 										data_supplier = map_config_settings.geowidget_supplier;
-										console.log( 'data_supplier' );
-										console.log( data_supplier );
+										console.log( 'Apczka MP operator config:' );
+										console.log( map_config_settings.geowidget_only_cod );
+										console.log( map_config_settings );
 									}
 								}
-							}
-
-							let bp_only_code_param = false;
-							let operators          = [];
-
-							if ( data_only_cod === 'yes' ) {
-								bp_only_code_param
 							}
 
 							function apaczka_mp_create_operator_obj(operatorId, operatorName) {
@@ -154,15 +218,15 @@
 							}
 
 							if ('' === country_code || typeof country_code === 'undefined' || country_code === null) {
-								let shipping_country = $('#shipping_country');
+								let shipping_country = $( '#shipping_country' );
 								if (typeof shipping_country != 'undefined' && shipping_country !== null) {
-									let country_code_val = $(shipping_country).val();
+									let country_code_val = $( shipping_country ).val();
 									if (typeof country_code_val != 'undefined' && country_code_val !== null) {
 										country_code = country_code_val;
 									} else {
-										let billing_country = $('#billing_country');
+										let billing_country = $( '#billing_country' );
 										if (typeof billing_country != 'undefined' && billing_country !== null) {
-											country_code_val = $(billing_country).val();
+											country_code_val = $( billing_country ).val();
 											if (typeof country_code_val != 'undefined' && country_code_val !== null) {
 												country_code = country_code_val;
 											}
@@ -184,6 +248,7 @@
 							console.log( 'BPWidget.init' );
 							console.log( operators );
 							console.log( country_code );
+							console.log( 'COD only: ' + bp_only_code_param );
 
 							BPWidget.init(
 								document.getElementById( 'apaczka_mp_geowidget_modal_inner_content' ),

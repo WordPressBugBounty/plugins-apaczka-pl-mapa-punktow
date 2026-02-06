@@ -51,6 +51,14 @@ class WC_Settings_Integration extends \WC_Integration {
 				'description' => __( 'Application Secret. You can generate it in Apaczka customer panel.', 'apaczka-pl-mapa-punktow' ),
 				'desc_tip'    => true,
 			),
+            'map_alternative_btn' => array(
+                'title'       => '',
+                'type'        => 'checkbox',
+                'label'       => '',
+                'default'     => 'no',
+                'description' => __( 'An alternative way to show the map button', 'apaczka-pl-mapa-punktow' ),
+                'desc_tip'    => false,
+            ),
 		);
 	}
 
@@ -65,13 +73,18 @@ class WC_Settings_Integration extends \WC_Integration {
 					<?php
 					parent::admin_options();
 
-					$status = __( 'Error. Please fill in valid App ID and App Secret.', 'apaczka-pl-mapa-punktow' );
-					if ( true === $this->is_api_connected() ) {
-						$status = __( 'Connected', 'apaczka-pl-mapa-punktow' );
-					}
+                    $status_text = '';
+                    if ( true === $this->is_api_connected() ) {
+                        $status_text = __( 'Connected', 'apaczka-pl-mapa-punktow' );
+                        $status_html = '<span style="color: green; font-weight: bold;">' . esc_html( $status_text ) . '</span>';
+                    } else {
+                        $status_text = __( 'Error. Please fill in valid App ID and App Secret.', 'apaczka-pl-mapa-punktow' );
+                        $status_html = '<span style="color: red; font-weight: bold;">' . esc_html( $status_text ) . '</span>';
+                    }
+                    ?>
+                    <p><strong><?php esc_html_e( 'Connection status:', 'apaczka-pl-mapa-punktow' ); ?></strong> <?php echo wp_kses_post( $status_html ); ?></p>
+                    <p><strong><?php esc_html_e( 'Help:', 'apaczka-pl-mapa-punktow' ); ?></strong> <a target="_blank" href="https://panel.apaczka.pl/formularz-kontaktowy"><b><?php esc_html_e( 'Contact form', 'apaczka-pl-mapa-punktow' ); ?></b></a></p>
 
-					?>
-					<p><?php esc_html_e( 'Connection status:', 'apaczka-pl-mapa-punktow' ); ?> <?php echo esc_html( $status ); ?></p>
 				</div>
 			</div>
 		</div>
@@ -84,8 +97,8 @@ class WC_Settings_Integration extends \WC_Integration {
 	 * @return bool
 	 */
 	public function is_api_connected() {
-		\Apaczka\Api::$app_id     = $this->settings['app_id'];
-		\Apaczka\Api::$app_secret = $this->settings['app_secret'];
+		\Apaczka\Api::$app_id     = trim( $this->settings['app_id'] );
+		\Apaczka\Api::$app_secret = trim( $this->settings['app_secret'] );
 
 		$result   = false;
 		$response = json_decode( \Apaczka\Api::service_structure(), true );

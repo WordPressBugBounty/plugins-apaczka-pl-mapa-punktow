@@ -1,10 +1,10 @@
 === Apaczka.pl Mapa Punktów ===
 Contributors: inspirelabs
-Donate link: https://www. inspirelabs.pl/
+Donate link: https://ilabs.dev/
 Tags: apaczka, woocommerce
 Requires at least: 4.0
-Tested up to: 6.8
-Stable tag: 1.4.1
+Tested up to: 6.9
+Stable tag: 1.4.4
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -27,7 +27,7 @@ Punkt zostanie zaimportowany wraz ze zleceniem do serwisu Apaczka.pl gdzie możn
 Zobacz jak będzie wyglądać [Twoja mapa](https://mapa.apaczka.pl/)
 Aby korzystać z tej wtyczki, należy mieć utworzone konto na Apaczka.pl.
 
-Jeśli masz pytania dotyczące wtyczki lub założenia konta na Apaczka.pl, skontaktuj się przez [formularz kontaktowy](https://www.apaczka.pl/import-woocommerce-instrukcja/)
+Jeśli masz pytania dotyczące wtyczki lub założenia konta na Apaczka.pl, skontaktuj się przez [formularz kontaktowy](https://panel.apaczka.pl/formularz-kontaktowy)
 
 == Installation	 ==
 
@@ -41,11 +41,21 @@ Tak. Zarejestruj się [tutaj](https://panel.apaczka.pl/?register=1).
 
 = Gdzie mogę uzyskać pomoc dotyczącą wtyczki? =
 
-Jeżeli jesteś już klientem Apaczka i potrzebujesz pomocy z wtyczką skontaktuj się za pomocą [formualrza kontaktowego.](https://panel.apaczka.pl/login.php#load-form)
-Jeżeli nie masz jeszcze konta w Apaczka, zapoznaj się z możliwościami i skontaktuj z nami przez formularz pod artykułem:
-[https://www.apaczka.pl/import-woocommerce-instrukcja/](https://www.apaczka.pl/import-woocommerce-instrukcja/)
+Jeżeli jesteś już klientem Apaczka i potrzebujesz pomocy z wtyczką skontaktuj się za pomocą [formualrza kontaktowego.](https://panel.apaczka.pl/formularz-kontaktowy)
+Jeżeli nie masz jeszcze konta w Apaczka, zapoznaj się z możliwościami i skontaktuj z nami przez formularz:
+[Dopasuj ofertę](https://www.apaczka.pl/kontakt/)
 
 == Changelog ==
+
+= 1.4.4 - 2026.01.21 =
+* Feat: new setting - an alternative way to show the map button
+* Fix: map enqueue script if virtual products in cart
+
+= 1.4.3 - 2025.12.03 =
+* Fix: map enqueue script
+
+= 1.4.2 - 2025.10.14 =
+* Fix: COD points on the map
 
 = 1.4.1 - 2025.08.06 =
 * Fix: InPost International on the map
