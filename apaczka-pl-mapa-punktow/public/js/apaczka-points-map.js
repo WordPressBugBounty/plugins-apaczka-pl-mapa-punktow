@@ -1,5 +1,7 @@
 (function ($) {
 
+	let apaczka_mp_country_code        = '';
+
 	window.apaczka_mp_map_callback = function (point) {
 		console.log( point );
 
@@ -16,12 +18,18 @@
 			point_brand = point.code;
 		}
 
+		let mp_country_code = apaczka_mp_get_country_code( point.code );
+
 		let visible_point_desc = point_brand;
 		if ('description' in point) {
 			visible_point_desc += '<br>' + point.description;
 		}
+		let pointstreet = '';
 		if ('street' in point) {
 			visible_point_desc += '<br>' + point.street;
+			pointstreet = point.street;
+		} else if ('description' in point ) {
+			pointstreet = point.description;
 		}
 		if ('city' in point) {
 			visible_point_desc += '<br>' + point.city;
@@ -42,7 +50,7 @@
 		);
 		$( '#apm_street' ).each(
 			function (i, elem) {
-				$( elem ).val( point.street );
+				$( elem ).val( pointstreet );
 			}
 		);
 		$( '#apm_postal_code' ).each(
@@ -52,7 +60,7 @@
 		);
 		$( '#apm_country_code' ).each(
 			function (i, elem) {
-				$( elem ).val( 'PL' );
+				$( elem ).val( mp_country_code );
 			}
 		);
 		$( '#apm_supplier' ).each(
@@ -97,10 +105,10 @@
 				'<input type="hidden" id="apm_supplier" name="apm_supplier" value="' + point.operator + '"/>\n' +
 				'<input type="hidden" id="apm_name" name="apm_name" value="' + point.description + '"/>\n' +
 				'<input type="hidden" id="apm_foreign_access_point_id" name="apm_foreign_access_point_id" value="' + point.code + '"/>\n' +
-				'<input type="hidden" id="apm_street" name="apm_street" value="' + point.street + '"/>\n' +
+				'<input type="hidden" id="apm_street" name="apm_street" value="' + pointstreet + '"/>\n' +
 				'<input type="hidden" id="apm_city" name="apm_city" value="' + point.city + '"/>\n' +
 				'<input type="hidden" id="apm_postal_code" name="apm_postal_code" value="' + point.postalCode + '"/>\n' +
-				'<input type="hidden" id="apm_country_code" name="apm_country_code" value="PL"/>';
+				'<input type="hidden" id="apm_country_code" name="apm_country_code" value="' + mp_country_code + '"/>';
 
 			let wrap_close = '</span>';
 
@@ -118,7 +126,6 @@
 			// console.log( window );
 
 			let initial_map_address = '';
-			let country_code        = '';
 
 			$( document.body ).on(
 				'updated_checkout',
@@ -156,9 +163,9 @@
 							let data_supplier      = null;
 							let operators          = [];
 
-							let checked_shipping_input = jQuery( '#shipping_method' ).find( 'input[name^="shipping_method["]:checked' );
+							let checked_shipping_input = $( '#shipping_method' ).find( 'input[name^="shipping_method["]:checked' );
 							if ( typeof checked_shipping_input != 'undefined' && checked_shipping_input !== null) {
-								let id          = jQuery( checked_shipping_input ).val();
+								let id          = $( checked_shipping_input ).val();
 								let instance_id = null;
 								let method_data = null;
 								if (typeof id != 'undefined' && id !== null) {
@@ -207,6 +214,7 @@
 
 							} else {
 								operators = [
+									{operator: "GLS", price: null},
 									{operator: "RUCH", price: null},
 									{operator: "INPOST", price: null},
 									{operator: "POCZTA", price: null},
@@ -217,18 +225,18 @@
 								]
 							}
 
-							if ('' === country_code || typeof country_code === 'undefined' || country_code === null) {
+							if ('' === apaczka_mp_country_code || typeof apaczka_mp_country_code === 'undefined' || apaczka_mp_country_code === null) {
 								let shipping_country = $( '#shipping_country' );
 								if (typeof shipping_country != 'undefined' && shipping_country !== null) {
 									let country_code_val = $( shipping_country ).val();
 									if (typeof country_code_val != 'undefined' && country_code_val !== null) {
-										country_code = country_code_val;
+										apaczka_mp_country_code = country_code_val;
 									} else {
 										let billing_country = $( '#billing_country' );
 										if (typeof billing_country != 'undefined' && billing_country !== null) {
 											country_code_val = $( billing_country ).val();
 											if (typeof country_code_val != 'undefined' && country_code_val !== null) {
-												country_code = country_code_val;
+												apaczka_mp_country_code = country_code_val;
 											}
 										}
 									}
@@ -247,7 +255,7 @@
 
 							console.log( 'BPWidget.init' );
 							console.log( operators );
-							console.log( country_code );
+							console.log( apaczka_mp_country_code );
 							console.log( 'COD only: ' + bp_only_code_param );
 
 							BPWidget.init(
@@ -260,7 +268,7 @@
 									mapOptions: { zoom: 12 },
 									codOnly: bp_only_code_param,
 									operatorMarkers: true,
-									countryCodes: country_code,
+									countryCodes: apaczka_mp_country_code,
 									initialAddress: initial_map_address,
 									operators: operators,
 									codeSearch: true
@@ -282,7 +290,7 @@
 							$( '#amp-delivery-point-desc' ).hide();
 							$( '#apm_access_point_id' ).val( '' );
 
-							let id = jQuery( this ).val();
+							let id = $( this ).val();
 							console.log( 'input.shipping_method' );
 							console.log( id );
 							let instance_id = null;
@@ -326,22 +334,22 @@
 			$( '#billing_country' ).on(
 				'change',
 				function () {
-					country_code = $( this ).val();
+					apaczka_mp_country_code = $( this ).val();
 				}
 			);
 			$( '#shipping_country' ).on(
 				'change',
 				function () {
-					country_code = $( this ).val();
+					apaczka_mp_country_code = $( this ).val();
 				}
 			);
 			$( '#billing_country' ).on(
 				'change select2:select',
 				function (e) {
 					if (e.type === 'select2:select') {
-						country_code = e.params.data.id;
+						apaczka_mp_country_code = e.params.data.id;
 					} else {
-						country_code = $( this ).val();
+						apaczka_mp_country_code = $( this ).val();
 					}
 				}
 			);
@@ -349,13 +357,59 @@
 				'change select2:select',
 				function (e) {
 					if (e.type === 'select2:select') {
-						country_code = e.params.data.id;
+						apaczka_mp_country_code = e.params.data.id;
 					} else {
-						country_code = $( this ).val();
+						apaczka_mp_country_code = $( this ).val();
 					}
 				}
 			);
 
 		}
 	);
+
+
+	function apaczka_mp_get_country_code( code ) {
+		let mp_country_code = 'PL';
+		// 1. Check if input is valid
+		if (typeof code !== 'string') return null;
+
+		// 2. Define Regex Pattern
+		// ^GLS_      = Starts with "GLS_"
+		// ([A-Z]{2}) = Capture exactly 2 Uppercase letters (The Country Code)
+		// -          = Followed immediately by a hyphen
+		let regex = /^GLS_([A-Z]{2})-/;
+
+		// 3. Execute match
+		let match = code.match(regex);
+
+		// 4. Return result
+		if (match) {
+			return match[1]; // Returns the captured "XX" (e.g., "CZ")
+		} else {
+
+			if ('' === apaczka_mp_country_code || typeof apaczka_mp_country_code === 'undefined' || apaczka_mp_country_code === null ) {
+				let shipping_country = $( '#shipping_country' );
+				if (typeof shipping_country != 'undefined' && shipping_country !== null) {
+					let country_code_val = $( shipping_country ).val();
+					if (typeof country_code_val != 'undefined' && country_code_val !== null) {
+						mp_country_code = country_code_val;
+					} else {
+						let billing_country = $( '#billing_country' );
+						if (typeof billing_country != 'undefined' && billing_country !== null) {
+							country_code_val = $( billing_country ).val();
+							if (typeof country_code_val != 'undefined' && country_code_val !== null) {
+								mp_country_code = country_code_val;
+							}
+						}
+					}
+				}
+			} else {
+				return apaczka_mp_country_code;
+			}
+
+		}
+
+		return mp_country_code;
+	}
+
 })( jQuery );

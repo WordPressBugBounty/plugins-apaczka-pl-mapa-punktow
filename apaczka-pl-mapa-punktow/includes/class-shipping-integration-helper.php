@@ -45,6 +45,7 @@ class WC_Shipping_Integration_Helper {
 				'PWR'                  => __( 'Orlen Paczka', 'apaczka-pl-mapa-punktow' ),
 				'POCZTA'               => __( 'Poczta Polska', 'apaczka-pl-mapa-punktow' ),
 				'UPS'                  => __( 'UPS', 'apaczka-pl-mapa-punktow' ),
+				'GLS'                  => __( 'GLS', 'apaczka-pl-mapa-punktow' ),
 			),
 		);
 

@@ -48,7 +48,7 @@ class Delivery_Point_Map {
 		add_action( 'woocommerce_checkout_process', array( $this, 'select_delivery_point_validation' ) );
 		add_action( 'woocommerce_checkout_update_order_meta', array( $this, 'save_delivery_point_in_order_meta' ), 10, 2 );
 		add_filter( 'woocommerce_order_formatted_shipping_address', array( $this, 'delivery_point_as_shipping_address' ), 20, 2 );
-        add_action( 'woocommerce_after_shipping_rate', array( $this, 'show_map_button_debug' ), 100 );
+		add_action( 'woocommerce_after_shipping_rate', array( $this, 'show_map_button_debug' ), 100 );
 	}
 
 	/**
@@ -79,9 +79,9 @@ class Delivery_Point_Map {
 			return $data;
 		}
 
-        if( $this->is_alternative_map_mode_enable() ) {
-            return $data;
-        }
+		if ( $this->is_alternative_map_mode_enable() ) {
+			return $data;
+		}
 
 		if ( true === $this->is_delivery_map_button_display() ) {
 			$data['.amp-map-button']                 = '<span id="amp-map-button" data-supplier="' . $this->supplier . '" data-only-cod="' . $this->only_cod . '" class="button alt amp-map-button">' . __( 'Select a Delivery Point', 'apaczka-pl-mapa-punktow' ) . '</span>';
@@ -154,9 +154,9 @@ class Delivery_Point_Map {
 			return null;
 		}
 
-        if( $this->is_alternative_map_mode_enable() ) {
-            return null;
-        }
+		if ( $this->is_alternative_map_mode_enable() ) {
+			return null;
+		}
 
 		?>
 		<input type="hidden" name="apm_supplier" id="apm_supplier" value="">
@@ -200,6 +200,11 @@ class Delivery_Point_Map {
 			return;
 		}
 
+        $order = wc_get_order( $order_id );
+        if ( ! $order || is_wp_error( $order ) ) {
+            return;
+        }
+
 		$delivery_point                        = array();
 		$delivery_point['apm_access_point_id'] = sanitize_text_field( wp_unslash( $_POST['apm_access_point_id'] ) );
 
@@ -219,15 +224,8 @@ class Delivery_Point_Map {
 			sanitize_text_field( wp_unslash( $_POST['apm_country_code'] ) ) : null;
 		// phpcs:enable
 
-		add_post_meta( $order_id, 'apaczka_delivery_point', $delivery_point );
-		
-		if( 'yes' === get_option('woocommerce_custom_orders_table_enabled') ) {
-			$order = wc_get_order( $order_id );
-			if ( $order && !is_wp_error($order) ) {
-				$order->update_meta_data('apaczka_delivery_point', $delivery_point );
-				$order->save();
-			}
-		}
+		$order->update_meta_data( 'apaczka_delivery_point', $delivery_point );
+		$order->save();
 	}
 
 	/**
@@ -238,31 +236,33 @@ class Delivery_Point_Map {
 	 * @return mixed
 	 */
 	public function delivery_point_as_shipping_address( $raw_address, $object ) {
-		
-		$apaczka_delivery_point = get_post_meta( $object->get_id(), 'apaczka_delivery_point', true );
 
-        $need_to_show_point_in_address = false;
-
-        $order_id = $object->get_id();
-        $instance_id = '';
-        $name = '';
-		
-        foreach ( $object->get_items( 'shipping' ) as $item_id => $item ) {
-            $instance_id = $item->get_instance_id();
-            $name = $item->get_method_id();
-        }		
-
-        $shipping_method_settings_name = 'woocommerce_' . $name . '_' . $instance_id . '_settings';
-        $shipping_method_settings      = get_option( $shipping_method_settings_name );
-				
-
-        if ( $shipping_method_settings && isset( $shipping_method_settings['display_apaczka_map'] ) && 'yes' === $shipping_method_settings['display_apaczka_map'] ) {
-            $need_to_show_point_in_address = true;
+		if ( ! $object || is_wp_error( $object ) ) {
+			return $raw_address;
 		}
 
-        
-        if ( $need_to_show_point_in_address && ! empty( $apaczka_delivery_point ) && is_array( $apaczka_delivery_point ) ) {
-						
+		$apaczka_delivery_point = $object->get_meta( 'apaczka_delivery_point' );
+
+		$need_to_show_point_in_address = false;
+
+		$order_id    = $object->get_id();
+		$instance_id = '';
+		$name        = '';
+
+		foreach ( $object->get_items( 'shipping' ) as $item_id => $item ) {
+			$instance_id = $item->get_instance_id();
+			$name        = $item->get_method_id();
+		}
+
+		$shipping_method_settings_name = 'woocommerce_' . $name . '_' . $instance_id . '_settings';
+		$shipping_method_settings      = get_option( $shipping_method_settings_name );
+
+		if ( $shipping_method_settings && isset( $shipping_method_settings['display_apaczka_map'] ) && 'yes' === $shipping_method_settings['display_apaczka_map'] ) {
+			$need_to_show_point_in_address = true;
+		}
+
+		if ( $need_to_show_point_in_address && ! empty( $apaczka_delivery_point ) && is_array( $apaczka_delivery_point ) ) {
+
 			$raw_address['first_name'] = $apaczka_delivery_point['apm_name'];
 			$raw_address['last_name']  = '';
 			$raw_address['company']    = esc_html__( 'Delivery Point', 'apaczka-pl-mapa-punktow' ) . ': ' . $apaczka_delivery_point['apm_foreign_access_point_id'] . ' (' . $apaczka_delivery_point['apm_supplier'] . ')';
@@ -279,72 +279,72 @@ class Delivery_Point_Map {
 
 
 
-    /**
-     * Checks if the alternative map button mode is to be enabled.
-     *
-     * @return bool
-     */
-    private function is_alternative_map_mode_enable() {
+	/**
+	 * Checks if the alternative map button mode is to be enabled.
+	 *
+	 * @return bool
+	 */
+	private function is_alternative_map_mode_enable() {
 
-        $is_active = true;
+		$is_active = true;
 
-        if ( ! isset( WC()->integrations->integrations['woocommerce-maps-apaczka']->settings['map_alternative_btn'] ) ||
-             'no' === WC()->integrations->integrations['woocommerce-maps-apaczka']->settings['map_alternative_btn']
-        ) {
-            $is_active = false;
-        }
+		if ( ! isset( WC()->integrations->integrations['woocommerce-maps-apaczka']->settings['map_alternative_btn'] ) ||
+			'no' === WC()->integrations->integrations['woocommerce-maps-apaczka']->settings['map_alternative_btn']
+		) {
+			$is_active = false;
+		}
 
-        return $is_active;
-    }
+		return $is_active;
+	}
 
 
-    /**
-     * Displays a map selection button for debugging purposes.
-     *
-     * Shows a "Select point" button when debug mode is enabled and the current
-     * shipping method has map configuration. Only displays when the shipping method
-     * is selected by the customer.
-     *
-     * @param object $shipping The shipping method object.
-     */
-    public function show_map_button_debug( $shipping ) {
+	/**
+	 * Displays a map selection button for debugging purposes.
+	 *
+	 * Shows a "Select point" button when debug mode is enabled and the current
+	 * shipping method has map configuration. Only displays when the shipping method
+	 * is selected by the customer.
+	 *
+	 * @param object $shipping The shipping method object.
+	 */
+	public function show_map_button_debug( $shipping ) {
 
-        if( ! $this->is_alternative_map_mode_enable() ) {
-            return;
-        }
+		if ( ! $this->is_alternative_map_mode_enable() ) {
+			return;
+		}
 
-        $selected_method = null;
-        $method_has_config = false;
-        $selected_method_instance_id = null;
+		$selected_method             = null;
+		$method_has_config           = false;
+		$selected_method_instance_id = null;
 
-        if( function_exists('WC') && property_exists( WC(), 'session') ) {
-            $chosen_shipping_methods = WC()->session->get('chosen_shipping_methods');
-            if (is_array($chosen_shipping_methods) && 1 === count($chosen_shipping_methods)) {
-                $selected_method = reset($chosen_shipping_methods);
-            }
-        }
+		if ( function_exists( 'WC' ) && property_exists( WC(), 'session' ) ) {
+			$chosen_shipping_methods = WC()->session->get( 'chosen_shipping_methods' );
+			if ( is_array( $chosen_shipping_methods ) && 1 === count( $chosen_shipping_methods ) ) {
+				$selected_method = reset( $chosen_shipping_methods );
+			}
+		}
 
-        $shipping_method_require_map = $this->is_delivery_map_button_display();
+		$shipping_method_require_map = $this->is_delivery_map_button_display();
 
-        $data = explode( ':', $selected_method );
-        if( ! empty($data[1]) ) {
-            $selected_method_instance_id = (int) $data[1];
-        }
+		$data = explode( ':', $selected_method );
+		if ( ! empty( $data[1] ) ) {
+			$selected_method_instance_id = (int) $data[1];
+		}
 
-        if ( $shipping_method_require_map && ( $selected_method_instance_id === $shipping->instance_id ) ) {
+		if ( $shipping_method_require_map && ( $selected_method_instance_id === $shipping->instance_id ) ) {
 
-            $allowed_html = array(
-                'div'    => array(),
-                'button' => array(
-                    'type'  => array(),
-                    'class' => array(),
-                    'id' => array(),
-                ),
-            );
+			$allowed_html = array(
+				'div'    => array(),
+				'button' => array(
+					'type'  => array(),
+					'class' => array(),
+					'id'    => array(),
+				),
+			);
 
-            echo wp_kses( '<div><button id="amp-map-button" type="button" class="button alt apaczka_mp_pl_after_rate_btn">' . esc_html__('Select a Delivery Point', 'apaczka-pl-mapa-punktow' ). '</button></div>', $allowed_html );
-        }
-    }
+			echo wp_kses( '<div><button id="amp-map-button" type="button" class="button alt apaczka_mp_pl_after_rate_btn">' . esc_html__( 'Select a Delivery Point', 'apaczka-pl-mapa-punktow' ) . '</button></div>', $allowed_html );
+		}
+	}
 }
 
 new Delivery_Point_Map();

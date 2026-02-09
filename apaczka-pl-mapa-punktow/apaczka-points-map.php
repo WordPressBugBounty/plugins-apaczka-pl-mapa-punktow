@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Apaczka.pl Mapa Punktów
  * Description: Wtyczka pozwoli Ci w prosty sposób skonfigurować i wyświetlić mapę punktów dla twoich metod dostawy tak aby twój Klient mógł wybrać punkt, z którego chce odebrać przesyłkę.
- * Version:     1.4.4
+ * Version:     1.4.5
  * Text Domain: apaczka-pl-mapa-punktow
  * Author:      Inspire Labs
  * Author URI:  https://ilabs.dev/
@@ -70,10 +70,9 @@ class Points_Map_Plugin {
 			'woocommerce_blocks_checkout_block_registration',
 			function ( $integration_registry ) {
 				require_once APACZKA_POINTS_MAP_DIR . 'includes/class-woo-blocks-integration.php';
-                if ( class_exists('Apaczka_Points_Map\ApaczkaMP_Woo_Blocks_Integration' ) ) {
-                    $integration_registry->register( new ApaczkaMP_Woo_Blocks_Integration() );
-                }
-				
+				if ( class_exists( 'Apaczka_Points_Map\ApaczkaMP_Woo_Blocks_Integration' ) ) {
+					$integration_registry->register( new ApaczkaMP_Woo_Blocks_Integration() );
+				}
 			}
 		);
 		add_action(
@@ -239,12 +238,8 @@ class Points_Map_Plugin {
 
 			$apaczka_delivery_point = array_map( 'sanitize_text_field', $apaczka_delivery_point );
 
-			update_post_meta( $order->get_ID(), 'apaczka_delivery_point', $apaczka_delivery_point );
-
-			if ( 'yes' === get_option( 'woocommerce_custom_orders_table_enabled' ) ) {
-				$order->update_meta_data( 'apaczka_delivery_point', $apaczka_delivery_point );
-				$order->save();
-			}
+			$order->update_meta_data( 'apaczka_delivery_point', $apaczka_delivery_point );
+			$order->save();
 		}
 	}
 
@@ -308,7 +303,7 @@ class Points_Map_Plugin {
 					$geowidget_supplier = $shipping_method->instance_settings['supplier_apaczka_map'];
 
 					if ( 'ALL' === strtoupper( $geowidget_supplier ) || 'ALL_APACZKA' === strtoupper( $geowidget_supplier ) ) {
-						$config[ $instance_id ]['geowidget_supplier'] = array( 'DHL', 'DPD', 'INPOST', 'POCZTA', 'UPS', 'RUCH' );
+						$config[ $instance_id ]['geowidget_supplier'] = array( 'GLS', 'DHL', 'DPD', 'INPOST', 'POCZTA', 'UPS', 'RUCH' );
 					} else {
 						$single_carrier                               = $shipping_method->instance_settings['supplier_apaczka_map'];
 						$config[ $instance_id ]['geowidget_supplier'] = array( $single_carrier );
@@ -349,7 +344,7 @@ add_action(
 	function () {
 		if (
 			( function_exists( 'is_plugin_active' ) && is_plugin_active( 'woocommerce/woocommerce.php' ) )
-			|| in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) )
+			|| in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ), true )
 			|| ( defined( 'WC_PLUGIN_FILE' ) && defined( 'WC_VERSION' ) )
 		) {
 			new Points_Map_Plugin();

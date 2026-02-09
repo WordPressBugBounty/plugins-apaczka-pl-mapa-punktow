@@ -4,7 +4,7 @@ Donate link: https://ilabs.dev/
 Tags: apaczka, woocommerce
 Requires at least: 4.0
 Tested up to: 6.9
-Stable tag: 1.4.4
+Stable tag: 1.4.5
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -46,6 +46,9 @@ Jeżeli nie masz jeszcze konta w Apaczka, zapoznaj się z możliwościami i skon
 [Dopasuj ofertę](https://www.apaczka.pl/kontakt/)
 
 == Changelog ==
+
+= 1.4.5 - 2026.02.09 =
+* Feat: new operator on map (GLS)
 
 = 1.4.4 - 2026.01.21 =
 * Feat: new setting - an alternative way to show the map button
