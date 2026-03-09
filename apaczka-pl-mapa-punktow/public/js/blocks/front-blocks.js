@@ -68,7 +68,7 @@
 			apaczka_point_data.apm_supplier = record.operator;
 		}
 
-		if ('description' in record) {
+		if ('description' in record && typeof record.description != 'undefined' ) {
 			apaczka_point_data.apm_name = record.description;
 			visible_point_desc         += record.description;
 		}
@@ -280,6 +280,30 @@
 									console.log( apaczka_mp_country );
 
 									if ( apaczka_geowidget_supplier !== null) {
+
+										if ( Array.isArray( apaczka_geowidget_supplier ) ) {
+											// Find index of 'DHL' in array.
+											let dhlIndex = apaczka_geowidget_supplier.indexOf( 'DHL' );
+											if ( dhlIndex !== -1 ) {
+												if( 'PL' !== apaczka_mp_country.toUpperCase() ) {
+													console.log('Apaczka MP: not PL map');
+													// Replace 'DHL' with 'DHL_PARCEL' at the same position.
+													apaczka_geowidget_supplier[dhlIndex] = 'DHL_PARCEL';
+												} else {
+													apaczka_geowidget_supplier[dhlIndex] = 'DHL';
+												}
+											} else {
+												dhlIndex = apaczka_geowidget_supplier.indexOf( 'DHL_PARCEL' );
+												if( 'PL' !== apaczka_mp_country.toUpperCase() ) {
+													console.log('Apaczka MP: not PL map');
+													// Replace 'DHL' with 'DHL_PARCEL' at the same position.
+													apaczka_geowidget_supplier[dhlIndex] = 'DHL_PARCEL';
+												} else {
+													apaczka_geowidget_supplier[dhlIndex] = 'DHL';
+												}
+											}
+										}
+
 										operators = apaczka_geowidget_supplier.map(
 											function (operator) {
 												return apaczka_mp_blocks_create_operator_obj( 'operators-' + operator, operator );
@@ -471,9 +495,6 @@
 
 		operatorName = operatorName.toUpperCase();
 
-		if ( 'DHL_PARCEL' === operatorName ) {
-			operatorName = 'DHL';
-		}
 		if ( 'PWR' === operatorName ) {
 			operatorName = 'RUCH';
 		}

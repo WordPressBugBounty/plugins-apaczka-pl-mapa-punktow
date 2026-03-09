@@ -2,14 +2,14 @@
 /**
  * Plugin Name: Apaczka.pl Mapa Punktów
  * Description: Wtyczka pozwoli Ci w prosty sposób skonfigurować i wyświetlić mapę punktów dla twoich metod dostawy tak aby twój Klient mógł wybrać punkt, z którego chce odebrać przesyłkę.
- * Version:     1.4.5
+ * Version:     1.4.6
  * Text Domain: apaczka-pl-mapa-punktow
  * Author:      Inspire Labs
  * Author URI:  https://ilabs.dev/
 
  * Domain Path: /languages
  *
- * WC tested up to: 10.4.3
+ * WC tested up to: 10.5.3
  *
  * Copyright 2020 Inspire Labs sp. z o.o.
  *
@@ -117,13 +117,13 @@ class Points_Map_Plugin {
 			);
 			wp_enqueue_style(
 				'apaczka-points-map-bliskapaczka-style',
-				'https://map.alsendo.com/v8.6/main.css',
+				'https://map.alsendo.com/v8.7/main.css',
 				'',
 				$plugin_data['Version']
 			);
 			wp_enqueue_script(
 				'bliskpaczka-client-map',
-				'https://map.alsendo.com/v8.6/main.js',
+				'https://map.alsendo.com/v8.7/main.js',
 				array( 'jquery' ),
 				$plugin_data['Version'],
 				array( 'in_footer' => true )
