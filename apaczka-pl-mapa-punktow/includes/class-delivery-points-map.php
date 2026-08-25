@@ -205,6 +205,11 @@ class Delivery_Point_Map {
             return;
         }
 
+		// Save point meta only when the chosen shipping method requires the map.
+		if ( ! $this->is_delivery_map_button_display() ) {
+			return;
+		}
+
 		$delivery_point                        = array();
 		$delivery_point['apm_access_point_id'] = sanitize_text_field( wp_unslash( $_POST['apm_access_point_id'] ) );
 
@@ -308,6 +313,10 @@ class Delivery_Point_Map {
 	 * @param object $shipping The shipping method object.
 	 */
 	public function show_map_button_debug( $shipping ) {
+
+		if ( ! is_checkout() ) {
+			return;
+		}
 
 		if ( ! $this->is_alternative_map_mode_enable() ) {
 			return;

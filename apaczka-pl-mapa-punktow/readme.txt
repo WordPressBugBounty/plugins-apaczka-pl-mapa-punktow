@@ -2,9 +2,9 @@
 Contributors: inspirelabs
 Donate link: https://ilabs.dev/
 Tags: apaczka, woocommerce
-Requires at least: 4.0
-Tested up to: 6.9
-Stable tag: 1.4.6
+Requires at least: 5.0
+Tested up to: 7.1
+Stable tag: 1.4.7
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -46,6 +46,10 @@ Jeżeli nie masz jeszcze konta w Apaczka, zapoznaj się z możliwościami i skon
 [Dopasuj ofertę](https://www.apaczka.pl/kontakt/)
 
 == Changelog ==
+
+= 1.4.7 - 2026.08.25 =
+* Fix: map init
+* Fix: output of alternative map button in cart
 
 = 1.4.6 - 2026.03.09 =
 * Fix: DHL operator on map

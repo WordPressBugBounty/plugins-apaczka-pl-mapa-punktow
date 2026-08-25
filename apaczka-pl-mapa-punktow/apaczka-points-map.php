@@ -2,14 +2,15 @@
 /**
  * Plugin Name: Apaczka.pl Mapa Punktów
  * Description: Wtyczka pozwoli Ci w prosty sposób skonfigurować i wyświetlić mapę punktów dla twoich metod dostawy tak aby twój Klient mógł wybrać punkt, z którego chce odebrać przesyłkę.
- * Version:     1.4.6
+ * Version:     1.4.7
  * Text Domain: apaczka-pl-mapa-punktow
  * Author:      Inspire Labs
  * Author URI:  https://ilabs.dev/
-
+ * License: GPLv3
+ * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Domain Path: /languages
  *
- * WC tested up to: 10.5.3
+ * WC tested up to: 11.0.1
  *
  * Copyright 2020 Inspire Labs sp. z o.o.
  *
@@ -229,6 +230,10 @@ class Points_Map_Plugin {
 			return;
 		}
 
+		if ( ! $this->order_requires_delivery_map( $order ) ) {
+			return;
+		}
+
 		$request_body = json_decode( $request->get_body(), true );
 
 		if ( isset( $request_body['extensions']['apaczka']['apaczka-point'] )
@@ -241,6 +246,25 @@ class Points_Map_Plugin {
 			$order->update_meta_data( 'apaczka_delivery_point', $apaczka_delivery_point );
 			$order->save();
 		}
+	}
+
+	/**
+	 * Whether order shipping method has Apaczka map enabled.
+	 *
+	 * @param \WC_Order $order Order.
+	 * @return bool
+	 */
+	private function order_requires_delivery_map( $order ) {
+		$map_config = $this->get_map_config();
+
+		foreach ( $order->get_shipping_methods() as $item ) {
+			$instance_id = (int) $item->get_instance_id();
+			if ( ! empty( $map_config[ $instance_id ] ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 
@@ -344,6 +368,7 @@ add_action(
 	function () {
 		if (
 			( function_exists( 'is_plugin_active' ) && is_plugin_active( 'woocommerce/woocommerce.php' ) )
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core WP filter on the active_plugins option, not a plugin-defined hook.
 			|| in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ), true )
 			|| ( defined( 'WC_PLUGIN_FILE' ) && defined( 'WC_VERSION' ) )
 		) {
@@ -352,6 +377,7 @@ add_action(
 			require_once APACZKA_POINTS_MAP_DIR . 'includes/class-wc-shipping-integration.php';
 			require_once APACZKA_POINTS_MAP_DIR . 'includes/class-delivery-points-map.php';
 
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core WP filter on the active_plugins option, not a plugin-defined hook.
 			if ( in_array( 'flexible-shipping/flexible-shipping.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ), true ) ) {
 				require_once APACZKA_POINTS_MAP_DIR . 'includes/class-flexible-shipping-integration.php';
 			}

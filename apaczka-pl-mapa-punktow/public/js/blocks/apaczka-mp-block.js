@@ -10,7 +10,7 @@
         }, (0, t.createElement)("input", {value: a, type: "text", id: "apaczka-point", onChange: e}))
     }
 
-    const c = JSON.parse('{"apiVersion":2,"name":"apaczka-mapa-punktow/apaczka-mapa-punktow-block","version":"2.0.0","title":"Apaczka Mapa Punktow Shipping Options Block","category":"woocommerce","description":"Adds map button and input to save delivery point data.","supports":{"html":false,"align":false,"multiple":false,"reusable":false},"parent":["woocommerce/checkout-shipping-methods-block"],"attributes":{"lock":{"type":"object","default":{"remove":true,"move":true}},"text":{"type":"string","source":"html","selector":".wp-block-apaczka-mapa-punktow","default":""}},"textdomain":"apaczka-pl-mapa-punktow","editorStyle":""}');
+    const c = JSON.parse('{"apiVersion":3,"name":"apaczka-mapa-punktow/apaczka-mapa-punktow-block","version":"2.0.0","title":"Apaczka Mapa Punktow Shipping Options Block","category":"woocommerce","description":"Adds map button and input to save delivery point data.","supports":{"html":false,"align":false,"multiple":false,"reusable":false},"parent":["woocommerce/checkout-shipping-methods-block"],"attributes":{"lock":{"type":"object","default":{"remove":true,"move":true}},"text":{"type":"string","source":"html","selector":".wp-block-apaczka-mapa-punktow","default":""}},"textdomain":"apaczka-pl-mapa-punktow","editorStyle":""}');
     (0, e.registerCheckoutBlock)({
         metadata: c, component: ({checkoutExtensionData: e, extensions: c}) => {
             let i = !1, p = null;
@@ -61,8 +61,18 @@
                 })
             }), [s, k, m, i]);
             return (0, t.useEffect)((() => {
-                g(), _(), u("apaczka", "apaczka-point", s)
-            }), [s, u, _]), (0, t.createElement)(t.Fragment, null, i && (0, t.createElement)(t.Fragment, null, (0, t.createElement)("div", {
+                g(), _();
+                const pointValue = i ? s : "";
+                if (!i && s) {
+                    r("");
+                    const wrap = document.getElementById("apaczka_selected_point_data_wrap");
+                    if (wrap) {
+                        wrap.innerHTML = "";
+                        wrap.style.display = "none"
+                    }
+                }
+                u("apaczka", "apaczka-point", pointValue)
+            }), [s, u, _, i]), (0, t.createElement)(t.Fragment, null, i && (0, t.createElement)(t.Fragment, null, (0, t.createElement)("div", {
                 className: "button alt geowidget_show_map checkout-block",
                 id: "apaczka_mp_geowidget_show_map"
             }, (0, a.__)("Wybierz punkt dostawy", "apaczka-pl-mapa-punktow")), (0, t.createElement)("div", {

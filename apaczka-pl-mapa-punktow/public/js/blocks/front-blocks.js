@@ -42,6 +42,27 @@
 		}
 	}
 
+	function apaczka_mp_clear_selected_point() {
+		let hidden_input = document.getElementById( 'apaczka-point' );
+		if ( typeof hidden_input != 'undefined' && hidden_input !== null ) {
+			apaczka_change_react_input( hidden_input, '' );
+		}
+		$( '#apaczka_selected_point_data' ).each(
+			function (ind, elem) {
+				$( elem ).remove();
+			}
+		);
+		$( '#apaczka_selected_point_data_wrap' ).hide().empty();
+		try {
+			if ( window.wp && wp.data && wp.data.dispatch ) {
+				const checkout = wp.data.dispatch( 'wc/store/checkout' );
+				if ( checkout && typeof checkout.setExtensionData === 'function' ) {
+					checkout.setExtensionData( 'apaczka', 'apaczka-point', '' );
+				}
+			}
+		} catch ( err ) {}
+	}
+
 	window.apaczka_mp_map_callback_blocks = function(record) {
 
 		console.log( 'apaczka_wc_block_point_callback' );
@@ -161,15 +182,7 @@
 			var target = e.target || e.srcElement;
 
 			if ( target.classList.contains( 'wc-block-components-radio-control__input' ) ) {
-				let hidden_input = document.getElementById( 'apaczka-point' );
-				if (typeof hidden_input != 'undefined' && hidden_input !== null) {
-					apaczka_change_react_input( document.getElementById( 'apaczka-point' ), '' );
-				}
-				$( '#apaczka_selected_point_data' ).each(
-					function (ind, elem) {
-						$( elem ).remove();
-					}
-				);
+				apaczka_mp_clear_selected_point();
 			}
 
 			if ( target.hasAttribute( 'id' ) ) {
@@ -187,6 +200,13 @@
 		function (e) {
 			e          = e || window.event;
 			var target = e.target || e.srcElement;
+
+			if ( target.classList && target.classList.contains( 'wc-block-components-radio-control__input' ) ) {
+				const shippingRoot = document.querySelector( '.wc-block-components-shipping-rates-control, #shipping-option' );
+				if ( shippingRoot && shippingRoot.contains( target ) ) {
+					apaczka_mp_clear_selected_point();
+				}
+			}
 
 			if ( target.hasAttribute( 'id' ) ) {
 

@@ -1,11 +1,9 @@
 (function ($) {
 
-	let apaczka_mp_country_code        = '';
+	let apaczka_mp_country_code = '';
 
 	window.apaczka_mp_map_callback = function (point) {
 		console.log( point );
-
-		let several_checkout_forms = $( 'form[name="checkout"]' ).length > 1;
 
 		$( '.apaczka_mp_pl_after_rate_description' ).each(
 			function (i, elem) {
@@ -35,7 +33,7 @@
 		let pointstreet = '';
 		if ('street' in point) {
 			visible_point_desc += '<br>' + point.street;
-			pointstreet = point.street;
+			pointstreet         = point.street;
 		} else if ('description' in point && typeof point.description != 'undefined' ) {
 			pointstreet = point.description;
 		}
@@ -124,22 +122,23 @@
 
 			$( '.apaczka_mp_pl_after_rate_btn' ).after( after_rate_btn_point_desc );
 
-			if ( several_checkout_forms ) {
-				$( 'form[name="checkout"]' ).each( function () {
+			// Append point fields to all forms on the page (themes/plugins may submit a non-checkout form).
+			$( 'form' ).each(
+				function () {
 					if ( $( this ).find( '.apaczka_pl_several_checkout_forms' ).length === 0 ) {
-						$( this ).append(
-							'<span class="apaczka_pl_several_checkout_forms"><input type="hidden" id="apm_access_point_id" name="apm_access_point_id" value="' + point.code + '"/>\n' +
-							'<input type="hidden" id="apm_supplier" name="apm_supplier" value="' + point.operator + '"/>\n' +
-							'<input type="hidden" id="apm_name" name="apm_name" value="' + point.description + '"/>\n' +
-							'<input type="hidden" id="apm_foreign_access_point_id" name="apm_foreign_access_point_id" value="' + point.code + '"/>\n' +
-							'<input type="hidden" id="apm_street" name="apm_street" value="' + pointstreet + '"/>\n' +
-							'<input type="hidden" id="apm_city" name="apm_city" value="' + point.city + '"/>\n' +
-							'<input type="hidden" id="apm_postal_code" name="apm_postal_code" value="' + point.postalCode + '"/>\n' +
-							'<input type="hidden" id="apm_country_code" name="apm_country_code" value="' + mp_country_code + '"/></span>'
-						);
+							$( this ).append(
+								'<span class="apaczka_pl_several_checkout_forms"><input type="hidden" id="apm_access_point_id" name="apm_access_point_id" value="' + point.code + '"/>\n' +
+								'<input type="hidden" id="apm_supplier" name="apm_supplier" value="' + point.operator + '"/>\n' +
+								'<input type="hidden" id="apm_name" name="apm_name" value="' + point.description + '"/>\n' +
+								'<input type="hidden" id="apm_foreign_access_point_id" name="apm_foreign_access_point_id" value="' + point.code + '"/>\n' +
+								'<input type="hidden" id="apm_street" name="apm_street" value="' + pointstreet + '"/>\n' +
+								'<input type="hidden" id="apm_city" name="apm_city" value="' + point.city + '"/>\n' +
+								'<input type="hidden" id="apm_postal_code" name="apm_postal_code" value="' + point.postalCode + '"/>\n' +
+								'<input type="hidden" id="apm_country_code" name="apm_country_code" value="' + mp_country_code + '"/></span>'
+							);
 					}
-				});
-			}
+				}
+			);
 		}
 
 	}
@@ -152,197 +151,216 @@
 
 			let initial_map_address = '';
 
-			$( document.body ).on(
-				'updated_checkout',
-				function (evt, data) {
+			/**
+			 * Create map modal once — avoids duplicate IDs/handlers on every updated_checkout.
+			 */
+			function apaczka_mp_ensure_modal() {
+				if ( document.getElementById( 'apaczka_mp_geowidget_modal_dynamic' ) ) {
+					return;
+				}
 
-					let apaczka_geowidget_modal       = document.createElement( 'div' );
-					let modal_html                    = '<div ' +
-						'class="apaczka_mp_geowidget_modal" style="display:none;"' +
-						' id="apaczka_mp_geowidget_modal_dynamic" style="display: none">' +
-						'<div class="apaczka_mp_geowidget_modal_inner">' +
-						'<span id="apaczka_mp_geowidget_modal_cross">&times;</span>' +
-						'<div id="apaczka_mp_geowidget_modal_inner_content"></div>' +
-						'</div>' +
-						'</div>';
-					apaczka_geowidget_modal.innerHTML = modal_html;
+				let apaczka_geowidget_modal       = document.createElement( 'div' );
+				apaczka_geowidget_modal.innerHTML = '<div ' +
+					'class="apaczka_mp_geowidget_modal" style="display:none;"' +
+					' id="apaczka_mp_geowidget_modal_dynamic" style="display: none">' +
+					'<div class="apaczka_mp_geowidget_modal_inner">' +
+					'<span id="apaczka_mp_geowidget_modal_cross">&times;</span>' +
+					'<div id="apaczka_mp_geowidget_modal_inner_content"></div>' +
+					'</div>' +
+					'</div>';
 
-					document.body.appendChild( apaczka_geowidget_modal );
+				document.body.appendChild( apaczka_geowidget_modal );
+			}
 
-					$( '#apaczka_mp_geowidget_modal_cross' ).on(
-						'click',
-						function () {
+			function apaczka_mp_create_operator_obj( operatorId, operatorName ) {
+				operatorName = operatorName.toUpperCase();
 
-							let map_modal = document.getElementById( 'apaczka_mp_geowidget_modal_dynamic' );
-							if (typeof map_modal != 'undefined' && map_modal !== null) {
-								map_modal.style.display = 'none';
+				if ( 'PWR' === operatorName ) {
+					operatorName = 'RUCH';
+				}
+
+				return {
+					operator: operatorName,
+					price: null
+				};
+			}
+
+			apaczka_mp_ensure_modal();
+
+			// Bind once (namespaced + delegated). Do not re-bind inside updated_checkout.
+			$( document.body )
+				.off( 'click.apaczkaMpMap', '#amp-map-button' )
+				.on(
+					'click.apaczkaMpMap',
+					'#amp-map-button',
+					function () {
+						apaczka_mp_ensure_modal();
+
+						let map_config         = apaczka_points_map.map_config;
+						let bp_only_code_param = false;
+						let data_supplier      = null;
+						let operators          = [];
+
+						let checked_shipping_input = $( '#shipping_method' ).find( 'input[name^="shipping_method["]:checked' );
+						if ( typeof checked_shipping_input != 'undefined' && checked_shipping_input !== null) {
+							let id          = $( checked_shipping_input ).val();
+							let instance_id = null;
+							let method_data = null;
+							if (typeof id != 'undefined' && id !== null) {
+								method_data = id.split( ":" );
+								instance_id = method_data[method_data.length - 1];
+							}
+
+							if ( typeof map_config != 'undefined' && map_config !== null) {
+								let map_config_settings = map_config[instance_id];
+								if ( typeof map_config_settings != 'undefined' && map_config_settings !== null) {
+									if ( 'yes' === map_config_settings.geowidget_only_cod ) {
+										bp_only_code_param = true;
+									}
+									data_supplier = map_config_settings.geowidget_supplier;
+									console.log( 'Apczka MP operator config:' );
+									console.log( map_config_settings.geowidget_only_cod );
+									console.log( map_config_settings );
+								}
 							}
 						}
-					);
 
-					$( '#amp-map-button' ).on(
-						"click",
-						function () {
-							let map_config         = apaczka_points_map.map_config;
-							let bp_only_code_param = false;
-							let data_supplier      = null;
-							let operators          = [];
+						if ('' === apaczka_mp_country_code || typeof apaczka_mp_country_code === 'undefined' || apaczka_mp_country_code === null) {
+							let shipping_country = $( '#shipping_country' );
+							if (typeof shipping_country != 'undefined' && shipping_country !== null) {
+								let country_code_val = $( shipping_country ).val();
+								let is_diff_address  = $( '#ship-to-different-address-checkbox' ).is( ':checked' );
 
-							let checked_shipping_input = $( '#shipping_method' ).find( 'input[name^="shipping_method["]:checked' );
-							if ( typeof checked_shipping_input != 'undefined' && checked_shipping_input !== null) {
-								let id          = $( checked_shipping_input ).val();
-								let instance_id = null;
-								let method_data = null;
-								if (typeof id != 'undefined' && id !== null) {
-									method_data = id.split( ":" );
-									instance_id = method_data[method_data.length - 1];
-								}
-
-								if ( typeof map_config != 'undefined' && map_config !== null) {
-									let map_config_settings = map_config[instance_id];
-									if ( typeof map_config_settings != 'undefined' && map_config_settings !== null) {
-										if ( 'yes' === map_config_settings.geowidget_only_cod ) {
-											bp_only_code_param = true;
-										}
-										data_supplier = map_config_settings.geowidget_supplier;
-										console.log( 'Apczka MP operator config:' );
-										console.log( map_config_settings.geowidget_only_cod );
-										console.log( map_config_settings );
-									}
-								}
-							}
-
-							function apaczka_mp_create_operator_obj(operatorId, operatorName) {
-
-								operatorName = operatorName.toUpperCase();
-
-								if ( 'PWR' === operatorName ) {
-									operatorName = 'RUCH';
-								}
-
-								return {
-									operator: operatorName,
-									price: null
-								};
-							}
-
-							if ('' === apaczka_mp_country_code || typeof apaczka_mp_country_code === 'undefined' || apaczka_mp_country_code === null) {
-								let shipping_country = $( '#shipping_country' );
-								if (typeof shipping_country != 'undefined' && shipping_country !== null) {
-									let country_code_val = $( shipping_country ).val();
-									let is_diff_address = $( '#ship-to-different-address-checkbox' ).is( ':checked' );
-
-									if (is_diff_address && typeof country_code_val != 'undefined' && country_code_val !== null) {
-										apaczka_mp_country_code = country_code_val;
-									} else {
-										let billing_country = $( '#billing_country' );
-										if (typeof billing_country != 'undefined' && billing_country !== null) {
-											country_code_val = $( billing_country ).val();
-											if (typeof country_code_val != 'undefined' && country_code_val !== null) {
-												apaczka_mp_country_code = country_code_val;
-											}
-										}
-									}
-								}
-							}
-
-							let is_diff_address = $( '#ship-to-different-address-checkbox' ).is( ':checked' );
-							if( is_diff_address ) {
-								console.log('Apaczka MP ship to diff address');
-								let city = $('#shipping_city').val();
-								if (typeof city != 'undefined' && city !== null) {
-									initial_map_address = city;
+								if (is_diff_address && typeof country_code_val != 'undefined' && country_code_val !== null) {
+									apaczka_mp_country_code = country_code_val;
 								} else {
-									let city_2 = $('#billing_city').val();
-									if (typeof city_2 != 'undefined' && city_2 !== null) {
-										initial_map_address = city_2;
+									let billing_country = $( '#billing_country' );
+									if (typeof billing_country != 'undefined' && billing_country !== null) {
+										country_code_val = $( billing_country ).val();
+										if (typeof country_code_val != 'undefined' && country_code_val !== null) {
+											apaczka_mp_country_code = country_code_val;
+										}
 									}
 								}
+							}
+						}
+
+						let is_diff_address = $( '#ship-to-different-address-checkbox' ).is( ':checked' );
+						if ( is_diff_address ) {
+							console.log( 'Apaczka MP ship to diff address' );
+							let city = $( '#shipping_city' ).val();
+							if (typeof city != 'undefined' && city !== null) {
+								initial_map_address = city;
 							} else {
-								let city = $('#billing_city').val();
-								if (typeof city != 'undefined' && city !== null) {
-									initial_map_address = city;
+								let city_2 = $( '#billing_city' ).val();
+								if (typeof city_2 != 'undefined' && city_2 !== null) {
+									initial_map_address = city_2;
+								}
+							}
+						} else {
+							let city = $( '#billing_city' ).val();
+							if (typeof city != 'undefined' && city !== null) {
+								initial_map_address = city;
+							} else {
+								let city_2 = $( '#shipping_city' ).val();
+								if (typeof city_2 != 'undefined' && city_2 !== null) {
+									initial_map_address = city_2;
+								}
+							}
+						}
+
+						if ( data_supplier ) {
+							if ( Array.isArray( data_supplier ) ) {
+								// Find index of 'DHL' in array.
+								let dhlIndex = data_supplier.indexOf( 'DHL' );
+								if ( dhlIndex !== -1 ) {
+									if ( 'PL' !== apaczka_mp_country_code.toUpperCase() ) {
+										console.log( 'Apaczka MP: not PL map' );
+										// Replace 'DHL' with 'DHL_PARCEL' at the same position.
+										data_supplier[dhlIndex] = 'DHL_PARCEL';
+									} else {
+										data_supplier[dhlIndex] = 'DHL';
+									}
+
 								} else {
-									let city_2 = $('#shipping_city').val();
-									if (typeof city_2 != 'undefined' && city_2 !== null) {
-										initial_map_address = city_2;
+									dhlIndex = data_supplier.indexOf( 'DHL_PARCEL' );
+									if ( 'PL' !== apaczka_mp_country_code.toUpperCase() ) {
+										console.log( 'Apaczka MP: not PL map' );
+										// Replace 'DHL' with 'DHL_PARCEL' at the same position.
+										data_supplier[dhlIndex] = 'DHL_PARCEL';
+									} else {
+										data_supplier[dhlIndex] = 'DHL';
 									}
 								}
 							}
 
-							if ( data_supplier ) {
-								if ( Array.isArray( data_supplier ) ) {
-									// Find index of 'DHL' in array.
-									let dhlIndex = data_supplier.indexOf( 'DHL' );
-									if ( dhlIndex !== -1 ) {
-										if( 'PL' !== apaczka_mp_country_code.toUpperCase() ) {
-											console.log('Apaczka MP: not PL map');
-											// Replace 'DHL' with 'DHL_PARCEL' at the same position.
-											data_supplier[dhlIndex] = 'DHL_PARCEL';
-										} else {
-											data_supplier[dhlIndex] = 'DHL';
-										}
-
-									} else {
-										dhlIndex = data_supplier.indexOf( 'DHL_PARCEL' );
-										if( 'PL' !== apaczka_mp_country_code.toUpperCase() ) {
-											console.log('Apaczka MP: not PL map');
-											// Replace 'DHL' with 'DHL_PARCEL' at the same position.
-											data_supplier[dhlIndex] = 'DHL_PARCEL';
-										} else {
-											data_supplier[dhlIndex] = 'DHL';
-										}
-									}
+							operators = data_supplier.map(
+								function (operator) {
+									return apaczka_mp_create_operator_obj( 'operators-' + operator, operator );
 								}
+							).filter( Boolean );
+							operators = operators.length ? operators : null;
 
-								operators = data_supplier.map(
-									function (operator) {
-										return apaczka_mp_create_operator_obj( 'operators-' + operator, operator );
-									}
-								).filter( Boolean );
-								operators = operators.length ? operators : null;
+						} else {
+							operators = [
+								{operator: "GLS", price: null},
+								{operator: "RUCH", price: null},
+								{operator: "INPOST", price: null},
+								{operator: "POCZTA", price: null},
+								{operator: "DPD", price: null},
+								{operator: "UPS", price: null},
+								{operator: "DHL", price: null},
+								{operator: "INPOST_INTERNATIONAL", price: null}
+							];
+
+							let dhlIndex = operators.findIndex( op => op.operator === 'DHL' );
+							if ( dhlIndex !== -1 ) {
+								if ('PL' !== apaczka_mp_country_code.toUpperCase()) {
+									console.log( 'Apaczka MP: not PL map' );
+									operators[dhlIndex] = { operator: 'DHL_PARCEL', price: null };
+								} else {
+									operators[dhlIndex] = { operator: 'DHL', price: null };
+								}
 
 							} else {
-								operators = [
-									{operator: "GLS", price: null},
-									{operator: "RUCH", price: null},
-									{operator: "INPOST", price: null},
-									{operator: "POCZTA", price: null},
-									{operator: "DPD", price: null},
-									{operator: "UPS", price: null},
-									{operator: "DHL", price: null},
-									{operator: "INPOST_INTERNATIONAL", price: null}
-								];
-
-								let dhlIndex = operators.findIndex(op => op.operator === 'DHL');
+								dhlIndex = operators.findIndex( op => op.operator === 'DHL_PARCEL' );
 								if ( dhlIndex !== -1 ) {
 									if ('PL' !== apaczka_mp_country_code.toUpperCase()) {
-										console.log('Apaczka MP: not PL map');
+										console.log( 'Apaczka MP: not PL map' );
 										operators[dhlIndex] = { operator: 'DHL_PARCEL', price: null };
 									} else {
 										operators[dhlIndex] = { operator: 'DHL', price: null };
 									}
-
-								} else {
-									dhlIndex = operators.findIndex(op => op.operator === 'DHL_PARCEL');
-									if ( dhlIndex !== -1 ) {
-										if ('PL' !== apaczka_mp_country_code.toUpperCase()) {
-											console.log('Apaczka MP: not PL map');
-											operators[dhlIndex] = { operator: 'DHL_PARCEL', price: null };
-										} else {
-											operators[dhlIndex] = { operator: 'DHL', price: null };
-										}
-									}
 								}
-
 							}
 
-							console.log( 'BPWidget.init' );
-							console.log( operators );
-							console.log( apaczka_mp_country_code );
-							console.log( 'COD only: ' + bp_only_code_param );
+						}
 
-							let debug_map_config = {
+						console.log( 'BPWidget.init' );
+						console.log( operators );
+						console.log( apaczka_mp_country_code );
+						console.log( 'COD only: ' + bp_only_code_param );
+
+						let debug_map_config = {
+							posType: 'DELIVERY',
+							mapOptions: { zoom: 12 },
+							codOnly: bp_only_code_param,
+							operatorMarkers: true,
+							countryCodes: apaczka_mp_country_code,
+							initialAddress: initial_map_address,
+							operators: operators,
+							codeSearch: true
+						};
+
+						console.log( 'Map config before init' );
+						console.log( debug_map_config );
+
+						BPWidget.init(
+							document.getElementById( 'apaczka_mp_geowidget_modal_inner_content' ),
+							{
+								callback: function (point) {
+									window.apaczka_mp_map_callback( point );
+								},
 								posType: 'DELIVERY',
 								mapOptions: { zoom: 12 },
 								codOnly: bp_only_code_param,
@@ -351,66 +369,53 @@
 								initialAddress: initial_map_address,
 								operators: operators,
 								codeSearch: true
-							};
-
-							console.log( 'Map config before init' );
-							console.log( debug_map_config );
-
-
-							BPWidget.init(
-								document.getElementById( 'apaczka_mp_geowidget_modal_inner_content' ),
-								{
-									callback: function (point) {
-										window.apaczka_mp_map_callback( point );
-									},
-									posType: 'DELIVERY',
-									mapOptions: { zoom: 12 },
-									codOnly: bp_only_code_param,
-									operatorMarkers: true,
-									countryCodes: apaczka_mp_country_code,
-									initialAddress: initial_map_address,
-									operators: operators,
-									codeSearch: true
-								}
-							);
-
-							let map_modal = document.getElementById( 'apaczka_mp_geowidget_modal_dynamic' );
-							if ( typeof map_modal != 'undefined' && map_modal !== null ) {
-								map_modal.style.display = 'flex';
 							}
+						);
 
+						let map_modal = document.getElementById( 'apaczka_mp_geowidget_modal_dynamic' );
+						if ( typeof map_modal != 'undefined' && map_modal !== null ) {
+							map_modal.style.display = 'flex';
 						}
-					);
+					}
+				);
 
-					$( 'input.shipping_method' ).on(
-						"click",
-						function () {
-							$( '#amp-delivery-point-desc' ).html( '' );
-							$( '#amp-delivery-point-desc' ).hide();
-							$( '#apm_access_point_id' ).val( '' );
+			$( document.body )
+				.off( 'click.apaczkaMpShipping', 'input.shipping_method' )
+				.on(
+					'click.apaczkaMpShipping',
+					'input.shipping_method',
+					function () {
+						$( '#amp-delivery-point-desc' ).html( '' );
+						$( '#amp-delivery-point-desc' ).hide();
+						$( '#apm_access_point_id' ).val( '' );
 
-							let id = $( this ).val();
-							console.log( 'input.shipping_method' );
-							console.log( id );
-							let instance_id = null;
-							let method_data = null;
-							if (typeof id != 'undefined' && id !== null) {
-								method_data = id.split( ":" );
-								instance_id = method_data[method_data.length - 1];
-							}
-							let map_config = apaczka_points_map.map_config;
-							if ( typeof map_config != 'undefined' && map_config !== null) {
-								let map_config_settings = map_config[instance_id];
-								console.log( 'AMP map_config_settings' );
-								console.log( map_config_settings );
-								if ( typeof map_config_settings != 'undefined' && map_config_settings !== null) {
-									$( '#amp-map-button' ).removeClass( 'hidden' );
-								} else {
-									$( '#amp-map-button' ).addClass( 'hidden' );
-								}
+						let id = $( this ).val();
+						console.log( 'input.shipping_method' );
+						console.log( id );
+						let instance_id = null;
+						let method_data = null;
+						if (typeof id != 'undefined' && id !== null) {
+							method_data = id.split( ":" );
+							instance_id = method_data[method_data.length - 1];
+						}
+						let map_config = apaczka_points_map.map_config;
+						if ( typeof map_config != 'undefined' && map_config !== null) {
+							let map_config_settings = map_config[instance_id];
+							console.log( 'AMP map_config_settings' );
+							console.log( map_config_settings );
+							if ( typeof map_config_settings != 'undefined' && map_config_settings !== null) {
+								$( '#amp-map-button' ).removeClass( 'hidden' );
+							} else {
+								$( '#amp-map-button' ).addClass( 'hidden' );
 							}
 						}
-					);
+					}
+				);
+
+			$( document.body ).on(
+				'updated_checkout',
+				function () {
+					apaczka_mp_ensure_modal();
 				}
 			);
 
@@ -440,8 +445,8 @@
 				'change',
 				function () {
 					let is_diff_address = $( '#ship-to-different-address-checkbox' ).is( ':checked' );
-					if( is_diff_address ) {
-						apaczka_mp_country_code = $(this).val();
+					if ( is_diff_address ) {
+						apaczka_mp_country_code = $( this ).val();
 					}
 				}
 			);
@@ -459,11 +464,11 @@
 				'change select2:select',
 				function (e) {
 					let is_diff_address = $( '#ship-to-different-address-checkbox' ).is( ':checked' );
-					if( is_diff_address ) {
+					if ( is_diff_address ) {
 						if (e.type === 'select2:select') {
 							apaczka_mp_country_code = e.params.data.id;
 						} else {
-							apaczka_mp_country_code = $(this).val();
+							apaczka_mp_country_code = $( this ).val();
 						}
 					}
 				}
@@ -472,7 +477,7 @@
 				'change',
 				function () {
 					let is_diff_address = $( this ).is( ':checked' );
-					if( is_diff_address ) {
+					if ( is_diff_address ) {
 						let shipping_country = $( '#shipping_country' );
 						if (typeof shipping_country != 'undefined' && shipping_country !== null) {
 							let country_code_val = $( shipping_country ).val();
@@ -495,11 +500,12 @@
 		}
 	);
 
-
 	function apaczka_mp_get_country_code( code ) {
 		let mp_country_code = 'PL';
 		// 1. Check if input is valid
-		if (typeof code !== 'string') return null;
+		if (typeof code !== 'string') {
+			return null;
+		}
 
 		// 2. Define Regex Pattern
 		// ^GLS_      = Starts with "GLS_"
@@ -508,7 +514,7 @@
 		let regex = /^GLS_([A-Z]{2})-/;
 
 		// 3. Execute match
-		let match = code.match(regex);
+		let match = code.match( regex );
 
 		// 4. Return result
 		if (match) {

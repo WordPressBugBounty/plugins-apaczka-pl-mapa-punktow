@@ -27,10 +27,14 @@ class Flexible_Shipping_Integration {
 	/**
 	 * Saves setting options.
 	 *
+	 * Runs on Flexible Shipping admin save (`flexible_shipping_process_admin_options`),
+	 * after WooCommerce / Flexible Shipping already verified the settings nonce.
+	 *
 	 * @param array $shipping_method .
 	 * @return array
 	 */
 	public function save_setting_options( $shipping_method ) {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Admin save is gated by WooCommerce/Flexible Shipping nonce before this filter runs.
 		if ( isset( $_POST['woocommerce_flexible_shipping_supplier_apaczka_map_fxsp'] ) ) {
 			$shipping_method['supplier_apaczka_map_fxsp'] = sanitize_text_field( wp_unslash( $_POST['woocommerce_flexible_shipping_supplier_apaczka_map_fxsp'] ) );
 		}
@@ -44,6 +48,7 @@ class Flexible_Shipping_Integration {
 		if ( isset( $_POST['woocommerce_flexible_shipping_only_cod_apaczka_map_fxsp'] ) && $_POST['woocommerce_flexible_shipping_only_cod_apaczka_map_fxsp'] == 1 ) {
 			$shipping_method['only_cod_apaczka_map_fxsp'] = 'yes';
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		return $shipping_method;
 	}
